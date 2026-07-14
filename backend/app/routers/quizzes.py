@@ -11,13 +11,8 @@ from app.schemas import QuizQuestionRead, QuizRead, QuizResult, QuizSubmission
 router = APIRouter(tags=["quizzes"])
 
 
-@router.get("/quizzes/{quiz_id}", response_model=QuizRead)
-def get_quiz(quiz_id: int, session: Session = Depends(get_session)):
-    quiz = session.get(Quiz, quiz_id)
-    if not quiz:
-        raise HTTPException(status_code=404, detail="Quiz not found")
-
-    questions = session.exec(select(QuizQuestion).where(QuizQuestion.quiz_id == quiz_id)).all()
+def _build_quiz_read(quiz: Quiz, session: Session) -> QuizRead:
+    questions = session.exec(select(QuizQuestion).where(QuizQuestion.quiz_id == quiz.id)).all()
     return QuizRead(
         id=quiz.id,
         title=quiz.title,
@@ -29,6 +24,25 @@ def get_quiz(quiz_id: int, session: Session = Depends(get_session)):
             for q in questions
         ],
     )
+
+
+@router.get("/quizzes/{quiz_id}", response_model=QuizRead)
+def get_quiz(quiz_id: int, session: Session = Depends(get_session)):
+    quiz = session.get(Quiz, quiz_id)
+    if not quiz:
+        raise HTTPException(status_code=404, detail="Quiz not found")
+    return _build_quiz_read(quiz, session)
+
+
+@router.get("/lessons/{lesson_id}/quiz", response_model=QuizRead)
+def get_quiz_by_lesson(lesson_id: int, session: Session = Depends(get_session)):
+    """Returns the quiz for a lesson. Added so the frontend can jump from a
+    lesson page straight to its quiz without needing to know the quiz ID
+    ahead of time."""
+    quiz = session.exec(select(Quiz).where(Quiz.lesson_id == lesson_id)).first()
+    if not quiz:
+        raise HTTPException(status_code=404, detail="No quiz found for this lesson")
+    return _build_quiz_read(quiz, session)
 
 
 @router.post("/quizzes/{quiz_id}/submit", response_model=QuizResult)

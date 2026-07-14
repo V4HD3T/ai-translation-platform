@@ -2,18 +2,18 @@ def test_list_languages(client):
     response = client.get("/languages")
     assert response.status_code == 200
     codes = {lang["code"] for lang in response.json()}
-    assert {"tr", "en"}.issubset(codes)
+    assert {"en", "es"}.issubset(codes)
 
 
 def test_translate_without_auth_works(client):
     response = client.post(
         "/translate",
-        json={"text": "Merhaba dünya", "source_lang": "tr", "target_lang": "en"},
+        json={"text": "Hello world", "source_lang": "en", "target_lang": "es"},
     )
     assert response.status_code == 200
     data = response.json()
-    assert data["source_text"] == "Merhaba dünya"
-    assert data["translated_text"]  # mock service shouldn't return empty
+    assert data["source_text"] == "Hello world"
+    assert data["translated_text"]  # the mock service shouldn't return empty
 
 
 def test_translate_history_requires_auth(client):
@@ -32,11 +32,11 @@ def test_translate_and_check_history(client):
 
     client.post(
         "/translate",
-        json={"text": "Günaydın", "source_lang": "tr", "target_lang": "en"},
+        json={"text": "Good morning", "source_lang": "en", "target_lang": "es"},
         headers=headers,
     )
 
     history = client.get("/translate/history", headers=headers)
     assert history.status_code == 200
     assert len(history.json()) == 1
-    assert history.json()[0]["source_text"] == "Günaydın"
+    assert history.json()[0]["source_text"] == "Good morning"

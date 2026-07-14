@@ -5,7 +5,7 @@ def test_register_and_login(client):
             "username": "testuser",
             "email": "testuser@example.com",
             "password": "a-strong-password",
-            "native_language": "tr",
+            "native_language": "en",
         },
     )
     assert response.status_code == 201

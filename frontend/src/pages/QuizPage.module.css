@@ -1,0 +1,132 @@
+.page {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: var(--space-7) var(--space-5) var(--space-8);
+}
+
+.backLink {
+  display: inline-block;
+  color: var(--text-secondary);
+  font-size: 14px;
+  text-decoration: none;
+  margin-bottom: var(--space-4);
+}
+
+.backLink:hover {
+  color: var(--ink-900);
+}
+
+.question {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  padding: var(--space-5);
+  margin: 0 0 var(--space-4);
+}
+
+.questionText {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 16px;
+  padding: 0;
+  margin-bottom: var(--space-3);
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.option:hover {
+  background: var(--paper-50);
+}
+
+.submit {
+  background: var(--ink-900);
+  color: var(--paper-0);
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: var(--space-3) var(--space-6);
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: var(--space-2);
+}
+
+.submit:hover {
+  background: var(--ink-600);
+}
+
+.submit:disabled {
+  background: var(--ink-400);
+  cursor: not-allowed;
+}
+
+.result {
+  text-align: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-7) var(--space-5);
+}
+
+.resultScore {
+  font-family: var(--font-display);
+  font-size: 48px;
+  font-weight: 700;
+  color: var(--accent-600);
+}
+
+.resultDetail {
+  margin-top: var(--space-3);
+  color: var(--text-secondary);
+  font-size: 15px;
+}
+
+.resultActions {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-4);
+  margin-top: var(--space-6);
+}
+
+.retryButton {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3) var(--space-5);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.retryButton:hover {
+  border-color: var(--ink-400);
+}
+
+.backToLesson {
+  display: flex;
+  align-items: center;
+  background: var(--ink-900);
+  color: var(--paper-0);
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+  padding: var(--space-3) var(--space-5);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.backToLesson:hover {
+  background: var(--ink-600);
+}

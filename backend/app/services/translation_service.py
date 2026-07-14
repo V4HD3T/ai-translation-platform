@@ -4,16 +4,16 @@ Translation service abstraction.
 Two implementations are provided:
 - MockTranslationService: runs without downloading an external model; used
   for development, testing, and demoing this skeleton.
-- NLLBTranslationService: real transformer-based multilingual translation
-  via HuggingFace `transformers` (facebook/nllb-200-distilled-600M, supports
+- NLLBTranslationService: real transformer-based multilingual translation via
+  HuggingFace `transformers` (facebook/nllb-200-distilled-600M, supports
   200+ languages with a single model). Requires an internet connection to
   download the model on first run.
 
-Which implementation is used is determined by the USE_MOCK_TRANSLATION flag
+Which implementation is used is controlled by the USE_MOCK_TRANSLATION flag
 in the .env file (see app/config.py). To switch to the real model:
     1) pip install transformers torch sentencepiece
     2) Set USE_MOCK_TRANSLATION=false in .env
-    3) The model downloads automatically the first time you run the app (~2-3 min).
+    3) The model downloads automatically on first run (~2-3 min).
 """
 
 from abc import ABC, abstractmethod
@@ -46,9 +46,9 @@ class MockTranslationService(TranslationService):
     """A fake translation service for development/testing that runs without
     downloading a model.
 
-    Doesn't perform a real translation; it allows the API contract, the
-    database flow, and the learning/quiz modules to be developed and
-    tested independently of the model.
+    Doesn't perform a real translation; it lets the API contract, the
+    database flow, and the learning/quiz modules be developed and tested
+    independently of the model.
     """
 
     def translate(self, text: str, source_lang: str, target_lang: str) -> str:

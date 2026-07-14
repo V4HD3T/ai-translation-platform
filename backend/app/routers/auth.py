@@ -61,8 +61,7 @@ def get_current_user_optional(
     session: Session = Depends(get_session),
 ) -> Optional[User]:
     """Returns the logged-in user; None if there is no token (for endpoints
-    that allow anonymous access, e.g. being able to translate without
-    logging in)."""
+    that allow anonymous access, e.g. translating without logging in)."""
     if not token:
         return None
     user_id = decode_access_token(token)

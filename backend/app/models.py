@@ -9,7 +9,7 @@ class User(SQLModel, table=True):
     username: str = Field(index=True, unique=True)
     email: str = Field(index=True, unique=True)
     hashed_password: str
-    native_language: str = "tr"
+    native_language: str = "en"
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 

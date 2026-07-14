@@ -1,0 +1,118 @@
+.header {
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.inner {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: var(--space-3) var(--space-5);
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 19px;
+  text-decoration: none;
+  color: var(--ink-900);
+}
+
+.brandMark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-sm);
+  background: var(--ink-900);
+  color: var(--accent-500);
+  font-size: 16px;
+  font-family: var(--font-body);
+}
+
+.nav {
+  display: flex;
+  gap: var(--space-5);
+  flex: 1;
+}
+
+.link {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  padding: var(--space-2) 0;
+  border-bottom: 2px solid transparent;
+}
+
+.link:hover {
+  color: var(--ink-900);
+}
+
+.linkActive {
+  color: var(--ink-900);
+  border-bottom-color: var(--accent-500);
+}
+
+.authArea {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.username {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.logoutButton {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  color: var(--text-secondary);
+}
+
+.logoutButton:hover {
+  border-color: var(--ink-400);
+  color: var(--ink-900);
+}
+
+.ctaLink {
+  background: var(--ink-900);
+  color: var(--paper-0);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-sm);
+}
+
+.ctaLink:hover {
+  background: var(--ink-600);
+}
+
+@media (max-width: 640px) {
+  .inner {
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+  .nav {
+    order: 3;
+    width: 100%;
+    gap: var(--space-4);
+  }
+}
