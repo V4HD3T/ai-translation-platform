@@ -3,7 +3,9 @@ import { Link, useParams } from "react-router-dom";
 import { getLesson, listVocabulary } from "../api/courses";
 import { getQuizByLesson } from "../api/quizzes";
 import { useSpeechRecognition } from "../hooks/useSpeechRecognition";
+import { useSpeechSynthesis } from "../hooks/useSpeechSynthesis";
 import { MicButton } from "../components/MicButton";
+import { SpeakerButton } from "../components/SpeakerButton";
 import { LoadingState, ErrorState } from "../components/StatusMessage";
 import type { Lesson, VocabularyItem } from "../types";
 import styles from "./LessonDetailPage.module.css";
@@ -29,6 +31,7 @@ export function LessonDetailPage() {
   const [listeningItemId, setListeningItemId] = useState<number | null>(null);
 
   const speech = useSpeechRecognition();
+  const voice = useSpeechSynthesis();
 
   useEffect(() => {
     if (!lessonId) return;
@@ -88,13 +91,26 @@ export function LessonDetailPage() {
                   <span className={styles.word}>{item.word}</span>
                   <span className={styles.translation}>{item.translation}</span>
                 </div>
-                {speech.isSupported && lesson && (
-                  <MicButton
-                    isListening={listeningItemId === item.id && speech.isListening}
-                    onClick={() => practiceWord(item)}
-                    disabled={listeningItemId !== null && listeningItemId !== item.id}
-                    title={`Say the word "${item.word}"`}
-                  />
+                {(voice.isSupported || speech.isSupported) && lesson && (
+                  <div className={styles.vocabActions}>
+                    {voice.isSupported && (
+                      <SpeakerButton
+                        isSpeaking={voice.isSpeaking}
+                        onClick={() =>
+                          voice.isSpeaking ? voice.stop() : voice.speak(item.word, lesson.language_code)
+                        }
+                        title={`Listen to "${item.word}"`}
+                      />
+                    )}
+                    {speech.isSupported && (
+                      <MicButton
+                        isListening={listeningItemId === item.id && speech.isListening}
+                        onClick={() => practiceWord(item)}
+                        disabled={listeningItemId !== null && listeningItemId !== item.id}
+                        title={`Say the word "${item.word}"`}
+                      />
+                    )}
+                  </div>
                 )}
               </div>
               {item.example_sentence && (

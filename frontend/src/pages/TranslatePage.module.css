@@ -37,6 +37,24 @@
   background: var(--paper-50);
 }
 
+.langSelectWrap {
+  flex: 1;
+  position: relative;
+}
+
+.langSelectWrap .langSelect {
+  width: 100%;
+}
+
+.detectedHint {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 2px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
 .langSelect {
   flex: 1;
   border: 1px solid var(--border);
@@ -79,7 +97,7 @@
   border-right: 1px solid var(--border);
 }
 
-.micWrapper {
+.cornerButtonWrapper {
   position: absolute;
   right: var(--space-3);
   bottom: var(--space-3);

@@ -1,28 +1,38 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { listLanguages, translateText } from "../api/translate";
+import { detectLanguage, listLanguages, translateText } from "../api/translate";
 import { useAuth } from "../context/AuthContext";
 import { useSpeechRecognition } from "../hooks/useSpeechRecognition";
+import { useSpeechSynthesis } from "../hooks/useSpeechSynthesis";
 import { MicButton } from "../components/MicButton";
+import { SpeakerButton } from "../components/SpeakerButton";
 import type { Language } from "../types";
 import styles from "./TranslatePage.module.css";
 
 const DEBOUNCE_MS = 400;
+const AUTO_DETECT = "auto";
+
+interface DetectedInfo {
+  languageCode: string;
+  isReliable: boolean;
+}
 
 export function TranslatePage() {
   const { user } = useAuth();
   const [languages, setLanguages] = useState<Language[]>([]);
-  const [sourceLang, setSourceLang] = useState("en");
+  const [sourceLang, setSourceLang] = useState(AUTO_DETECT);
   const [targetLang, setTargetLang] = useState("es");
   const [sourceText, setSourceText] = useState("");
   const [translatedText, setTranslatedText] = useState("");
   const [isTranslating, setIsTranslating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [savedNotice, setSavedNotice] = useState(false);
+  const [detected, setDetected] = useState<DetectedInfo | null>(null);
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const requestIdRef = useRef(0);
 
   const speech = useSpeechRecognition();
+  const voice = useSpeechSynthesis();
 
   useEffect(() => {
     listLanguages()
@@ -31,10 +41,11 @@ export function TranslatePage() {
   }, []);
 
   const runTranslation = useCallback(
-    (text: string, from: string, to: string) => {
+    async (text: string, from: string, to: string) => {
       if (!text.trim()) {
         setTranslatedText("");
         setIsTranslating(false);
+        setDetected(null);
         return;
       }
 
@@ -42,20 +53,28 @@ export function TranslatePage() {
       setIsTranslating(true);
       setError(null);
 
-      translateText(text, from, to)
-        .then((result) => {
+      try {
+        let resolvedFrom = from;
+
+        if (from === AUTO_DETECT) {
+          const guess = await detectLanguage(text);
           if (currentRequestId !== requestIdRef.current) return; // stale response, ignore
-          setTranslatedText(result.translated_text);
-          setSavedNotice(Boolean(user));
-        })
-        .catch(() => {
-          if (currentRequestId !== requestIdRef.current) return;
-          setError("Something went wrong while translating. Please try again.");
-        })
-        .finally(() => {
-          if (currentRequestId !== requestIdRef.current) return;
-          setIsTranslating(false);
-        });
+          resolvedFrom = guess.language_code;
+          setDetected({ languageCode: guess.language_code, isReliable: guess.is_reliable });
+        } else {
+          setDetected(null);
+        }
+
+        const result = await translateText(text, resolvedFrom, to);
+        if (currentRequestId !== requestIdRef.current) return;
+        setTranslatedText(result.translated_text);
+        setSavedNotice(Boolean(user));
+      } catch {
+        if (currentRequestId !== requestIdRef.current) return;
+        setError("Something went wrong while translating. Please try again.");
+      } finally {
+        if (currentRequestId === requestIdRef.current) setIsTranslating(false);
+      }
     },
     [user]
   );
@@ -72,15 +91,19 @@ export function TranslatePage() {
   }, [sourceText, sourceLang, targetLang]);
 
   function handleSwap() {
+    // Swapping out of auto-detect wouldn't make sense as a source language,
+    // so lock in whatever was actually detected (or the target, as a fallback).
+    const effectiveSource = sourceLang === AUTO_DETECT ? (detected?.languageCode ?? targetLang) : sourceLang;
     setSourceLang(targetLang);
-    setTargetLang(sourceLang);
+    setTargetLang(effectiveSource);
     setSourceText(translatedText);
     setTranslatedText(sourceText);
   }
 
   async function handleMicClick() {
     try {
-      const transcript = await speech.listen(sourceLang);
+      const listenLang = sourceLang === AUTO_DETECT ? (detected?.languageCode ?? "en") : sourceLang;
+      const transcript = await speech.listen(listenLang);
       setSourceText((prev) => (prev ? `${prev} ${transcript}` : transcript));
     } catch {
       // the error is already surfaced via speech.error, nothing more to do here
@@ -103,18 +126,27 @@ export function TranslatePage() {
 
       <div className={styles.panel}>
         <div className={styles.langBar}>
-          <select
-            className={styles.langSelect}
-            value={sourceLang}
-            onChange={(e) => setSourceLang(e.target.value)}
-            aria-label="Source language"
-          >
-            {languages.map((lang) => (
-              <option key={lang.code} value={lang.code}>
-                {lang.name}
-              </option>
-            ))}
-          </select>
+          <div className={styles.langSelectWrap}>
+            <select
+              className={styles.langSelect}
+              value={sourceLang}
+              onChange={(e) => setSourceLang(e.target.value)}
+              aria-label="Source language"
+            >
+              <option value={AUTO_DETECT}>Detect language</option>
+              {languages.map((lang) => (
+                <option key={lang.code} value={lang.code}>
+                  {lang.name}
+                </option>
+              ))}
+            </select>
+            {sourceLang === AUTO_DETECT && detected && (
+              <span className={styles.detectedHint}>
+                Detected: {languageName(detected.languageCode)}
+                {!detected.isReliable && " (not sure — check this)"}
+              </span>
+            )}
+          </div>
 
           <button
             type="button"
@@ -144,13 +176,17 @@ export function TranslatePage() {
           <div className={styles.column}>
             <textarea
               className={styles.textarea}
-              placeholder={`Type or say something in ${languageName(sourceLang)}...`}
+              placeholder={
+                sourceLang === AUTO_DETECT
+                  ? "Type or say something — I'll figure out the language..."
+                  : `Type or say something in ${languageName(sourceLang)}...`
+              }
               value={sourceText}
               onChange={(e) => setSourceText(e.target.value)}
               rows={8}
             />
             {speech.isSupported && (
-              <div className={styles.micWrapper}>
+              <div className={styles.cornerButtonWrapper}>
                 <MicButton isListening={speech.isListening} onClick={handleMicClick} />
               </div>
             )}
@@ -168,6 +204,19 @@ export function TranslatePage() {
                 </span>
               )}
             </div>
+            {voice.isSupported && translatedText && (
+              <div className={styles.cornerButtonWrapper}>
+                <SpeakerButton
+                  isSpeaking={voice.isSpeaking}
+                  onClick={() =>
+                    voice.isSpeaking
+                      ? voice.stop()
+                      : voice.speak(translatedText, targetLang)
+                  }
+                  title="Listen to the translation"
+                />
+              </div>
+            )}
           </div>
         </div>
 

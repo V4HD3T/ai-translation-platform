@@ -1,10 +1,19 @@
 # Frontend — Lingua
 
-**Version:** 0.0.3
+**Version:** 0.0.4
 
 A single-page app built with Vite + React + TypeScript. Consumes the
-backend's authentication, translation, course/lesson/vocabulary, quiz, and
-progress endpoints.
+backend's authentication, translation (with language detection), course/
+lesson/vocabulary, quiz, spaced-repetition review, and progress endpoints.
+
+## What's new in 0.0.4
+
+- **"Detect language"** option in the translate page's source dropdown —
+  opt-in, shows the guess plus a "(not sure — check this)" flag when
+  confidence is low, never silently overrides a manual choice.
+- **Speaker buttons** (`useSpeechSynthesis` hook, `SpeakerButton`
+  component) on the translate page and next to each vocabulary word.
+- **`/review`** — a new flashcard-style spaced-repetition page.
 
 ## Setup
 
@@ -39,12 +48,13 @@ npm run preview   # serves the built version locally
 
 | Path | Description |
 |---|---|
-| `/` | Real-time translation (no login required) |
+| `/` | Real-time translation, with optional language detection (no login required) |
 | `/login`, `/register` | Authentication |
 | `/courses` | Course list |
 | `/courses/:courseId` | Course detail + lesson list |
-| `/lessons/:lessonId` | Vocabulary + entry point to the quiz |
+| `/lessons/:lessonId` | Vocabulary (listen + pronunciation practice) + entry point to the quiz |
 | `/lessons/:lessonId/quiz` | Taking the quiz (requires login) |
+| `/review` | Spaced-repetition flashcard review (requires login) |
 | `/progress` | Streak, course progress, overall stats (requires login) |
 | `/history` | Translation history (requires login) |
 
@@ -63,23 +73,38 @@ npm run preview   # serves the built version locally
 - Every page ships with its own CSS Modules file (`Page.module.css`) — no
   risk of global class name collisions.
 
-## Speech recognition
+## Speech: input and output
 
-The translate page (`/`) has a microphone icon inside the source text box,
-and the lesson page (`/lessons/:id`) has one next to each vocabulary word.
-Both go through `src/hooks/useSpeechRecognition.ts`, which wraps the
-browser's built-in `SpeechRecognition` / `webkitSpeechRecognition` API:
+**Input (speech-to-text)** — the translate page (`/`) has a microphone icon
+inside the source text box, and the lesson page (`/lessons/:id`) has one
+next to each vocabulary word. Both go through
+`src/hooks/useSpeechRecognition.ts`, wrapping the browser's built-in
+`SpeechRecognition` / `webkitSpeechRecognition` API.
 
-- Audio is never sent to any server, and no extra model is downloaded.
-- Works in Chrome and Edge; Firefox doesn't support it yet — the mic button
-  hides itself automatically in unsupported browsers, and the app keeps
-  working fine with the keyboard.
+**Output (text-to-speech)** — a speaker icon next to the translation
+output and next to each vocabulary word, via
+`src/hooks/useSpeechSynthesis.ts`, wrapping the browser's built-in
+`SpeechSynthesis` API. Broader browser support than speech-to-text
+(Firefox has it too).
+
+For both:
+- Nothing is sent to any server, and no extra model is downloaded.
+- Buttons hide themselves automatically in unsupported browsers; the app
+  keeps working fine with the keyboard/eyes alone.
 - Requires permission on `localhost`; production requires HTTPS (a browser
   restriction, not an app one).
-- The pronunciation practice on the lesson page normalizes the spoken word
-  (lowercase + trimmed) and compares it to the expected word exactly; this
-  is a simple, transparent check that could later be improved with fuzzy
-  matching (e.g. Levenshtein distance) if desired.
+
+The pronunciation practice on the lesson page normalizes the spoken word
+(lowercase + trimmed) and compares it to the expected word exactly; this
+is a simple, transparent check that could later be improved with fuzzy
+matching (e.g. Levenshtein distance) if desired.
+
+## Spaced repetition
+
+`/review` is a flashcard loop: see the word (with a speaker button to hear
+it), reveal the translation, rate yourself Again/Good/Easy. That rating
+drives a real SM-2 scheduling algorithm on the backend — see
+`backend/app/services/spaced_repetition.py`.
 
 ## Known warning
 

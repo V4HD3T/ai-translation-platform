@@ -11,6 +11,7 @@ import { LessonDetailPage } from "./pages/LessonDetailPage";
 import { QuizPage } from "./pages/QuizPage";
 import { HistoryPage } from "./pages/HistoryPage";
 import { ProgressPage } from "./pages/ProgressPage";
+import { ReviewPage } from "./pages/ReviewPage";
 
 export function App() {
   return (
@@ -25,6 +26,14 @@ export function App() {
           <Route path="/courses/:courseId" element={<CourseDetailPage />} />
           <Route path="/lessons/:lessonId" element={<LessonDetailPage />} />
           <Route path="/lessons/:lessonId/quiz" element={<QuizPage />} />
+          <Route
+            path="/review"
+            element={
+              <ProtectedRoute>
+                <ReviewPage />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/progress"
             element={

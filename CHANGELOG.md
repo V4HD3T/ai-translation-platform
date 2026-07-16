@@ -8,7 +8,46 @@ complete, until the project is stable enough for a 1.0.0.
 Versions 0.0.1 through 0.0.3 were originally built and documented in
 Turkish, then each given an English mirror at the same version number
 (0.0.1 self-translated and reviewed together, 0.0.2 and 0.0.3 translated
-directly). New features from here on start at 0.0.4.
+directly). New features starting from 0.0.4 are English-only going
+forward, one PATCH version per completed feature/topic.
+
+## [0.0.4] — Automatic language detection, text-to-speech, spaced repetition
+
+- **Automatic language detection** (`POST /detect-language`, `langid` library):
+  - The translate page's source dropdown now offers "Detect language" as
+    an explicit, opt-in choice — it never silently overrides a language
+    you picked yourself.
+  - Tested this empirically before trusting it: short greetings ("Bonjour",
+    "Merhaba") are genuinely unreliable with a lightweight offline model —
+    in testing, some were confidently misclassified. Detection is
+    restricted to the app's 5 supported languages (cuts down on unrelated
+    false matches) and is only ever applied when the text is at least 12
+    characters *and* the model's confidence is at least 0.6; otherwise the
+    UI shows the guess but flags it "(not sure — check this)".
+  - 8 new backend tests, using sentences individually verified against the
+    real classifier rather than assumed.
+- **Text-to-speech** (`useSpeechSynthesis` hook, browser `SpeechSynthesis`
+  API — no backend involved):
+  - A speaker button next to the translation output reads it aloud.
+  - A speaker button next to each vocabulary word on the lesson page, so
+    you hear a word correctly *before* the existing microphone practice
+    asks you to say it.
+  - No audio sent anywhere, no model downloaded — same approach as the
+    existing speech-to-text feature.
+- **Spaced repetition / SM-2 algorithm** (`GET /users/me/review-queue`,
+  `POST /vocabulary/{id}/review`, new `/review` page):
+  - Real SM-2 scheduling (ease factor, interval, repetitions) — the same
+    algorithm behind SuperMemo and Anki — implemented as a pure, unit-
+    tested function (13 new tests, including a check that the ease factor
+    can never drop below the algorithm's 1.3 floor even after 20 straight
+    failures).
+  - Flashcard-style review flow: see the word, reveal the answer, rate
+    yourself Again/Good/Easy; the next review date is computed from that
+    rating.
+  - New `VocabularyProgress` table, one row per (user, word), so every
+    learner gets their own independent schedule for the same word.
+- Backend: 51/51 tests passing. Frontend: clean `tsc -b` strict build.
+  All three features verified live end-to-end (not just unit-tested).
 
 ## [0.0.3] — Speech recognition, progress tracking, English translation
 

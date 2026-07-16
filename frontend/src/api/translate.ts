@@ -1,8 +1,21 @@
 import { apiRequest } from "./client";
 import type { Language, TranslateResult } from "../types";
 
+export interface DetectLanguageResult {
+  language_code: string;
+  confidence: number;
+  is_reliable: boolean;
+}
+
 export function listLanguages(): Promise<Language[]> {
   return apiRequest<Language[]>("/languages");
+}
+
+export function detectLanguage(text: string): Promise<DetectLanguageResult> {
+  return apiRequest<DetectLanguageResult>("/detect-language", {
+    method: "POST",
+    body: { text },
+  });
 }
 
 export function translateText(

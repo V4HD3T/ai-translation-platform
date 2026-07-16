@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from typing import Optional
 
 from sqlmodel import SQLModel, Field
@@ -75,3 +75,17 @@ class QuizAttempt(SQLModel, table=True):
     score: float
     total_questions: int
     completed_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class VocabularyProgress(SQLModel, table=True):
+    """One row per (user, vocabulary word) — the word's current SM-2
+    spaced-repetition schedule for that specific learner."""
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    user_id: int = Field(foreign_key="user.id")
+    vocabulary_item_id: int = Field(foreign_key="vocabularyitem.id")
+    ease_factor: float = 2.5
+    interval_days: int = 0
+    repetitions: int = 0
+    next_review_date: date = Field(default_factory=lambda: datetime.now(timezone.utc).date())
+    last_reviewed_at: Optional[datetime] = None

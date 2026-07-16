@@ -1,10 +1,22 @@
 # Backend — AI Translation and Language Learning Platform
 
-**Version:** 0.0.3
+**Version:** 0.0.4
 
 A REST API written with FastAPI + SQLModel. Includes authentication,
-real-time translation, course/lesson/vocabulary and quiz modules, and
-progress/streak tracking.
+real-time translation with automatic language detection, course/lesson/
+vocabulary and quiz modules, spaced-repetition review, and progress/streak
+tracking.
+
+## What's new in 0.0.4
+
+- `POST /detect-language` — guesses the language of a piece of text,
+  restricted to the app's 5 supported languages. Returns `is_reliable:
+  false` for short/ambiguous input rather than a false-confident guess —
+  see `app/services/language_detection.py` for why.
+- `GET /users/me/review-queue` and `POST /vocabulary/{id}/review` — SM-2
+  spaced repetition. New `VocabularyProgress` table.
+- Text-to-speech is frontend-only (browser API), no backend change needed.
+- 24 new tests (51 total).
 
 ## Setup
 
@@ -25,7 +37,7 @@ uvicorn app.main:app --reload
 Once the server is up:
 - API: http://127.0.0.1:8000
 - Automatic Swagger documentation: http://127.0.0.1:8000/docs
-- Health check: http://127.0.0.1:8000/health
+- Health check: http://127.0.0.1:8000/health (also reports the running version)
 
 On first startup, the database tables are created automatically and sample
 data is added (5 languages, 1 course, 1 lesson, 2 vocabulary items, 1 quiz).
@@ -36,10 +48,10 @@ data is added (5 languages, 1 course, 1 lesson, 2 vocabulary items, 1 quiz).
 pytest -v
 ```
 
-30 tests; covers authentication, translation (anonymous + registered user),
-lesson/course flows, quizzes, and progress/streak calculation. The tests use
-an isolated in-memory SQLite database and don't touch the real `app.db`
-file.
+51 tests; covers authentication, translation (anonymous + registered
+user), language detection, lesson/course flows, quizzes, spaced
+repetition, and progress/streak calculation. The tests use an isolated
+in-memory SQLite database and don't touch the real `app.db` file.
 
 ## Switching to the real translation model
 
@@ -69,18 +81,21 @@ app/
   main.py            FastAPI entry point, router registration, sample data
   config.py          Settings read from environment variables
   database.py        SQLModel engine/session
-  models.py          Database tables (User, Course, Quiz, ...)
+  models.py          Database tables (User, Course, Quiz, VocabularyProgress, ...)
   schemas.py         API request/response schemas
   security.py        Password hashing + JWT
   services/
     translation_service.py   Mock + NLLB translation service abstraction
+    language_detection.py    langid-based source language detection
+    spaced_repetition.py     Pure SM-2 scheduling function
   routers/
     auth.py          /auth/register, /auth/login, /auth/me
-    translate.py     /translate, /translate/history, /languages
+    translate.py     /translate, /translate/history, /languages, /detect-language
     courses.py       /courses, /courses/{id}/lessons, /lessons/{id}, /lessons/{id}/vocabulary
     quizzes.py       /quizzes/{id}, /quizzes/{id}/submit, /lessons/{id}/quiz
     stats.py         /users/me/stats (streak, progress, overall statistics)
-tests/               pytest test suite (30 tests)
+    review.py        /users/me/review-queue, /vocabulary/{id}/review (spaced repetition)
+tests/               pytest test suite (51 tests)
 ```
 
 ## Authentication flow

@@ -1,3 +1,4 @@
+from datetime import date
 from typing import Dict, List
 
 from pydantic import BaseModel, EmailStr, Field
@@ -38,6 +39,16 @@ class TranslateResponse(BaseModel):
 class LanguageRead(BaseModel):
     code: str
     name: str
+
+
+class DetectLanguageRequest(BaseModel):
+    text: str = Field(min_length=1, max_length=2000)
+
+
+class DetectLanguageResponse(BaseModel):
+    language_code: str
+    confidence: float
+    is_reliable: bool
 
 
 class CourseRead(BaseModel):
@@ -102,3 +113,25 @@ class UserStats(BaseModel):
     total_quiz_attempts: int
     average_quiz_score: float
     courses: List[CourseProgress]
+
+
+class ReviewQueueItem(BaseModel):
+    vocabulary_item_id: int
+    word: str
+    translation: str
+    example_sentence: str
+    lesson_id: int
+    language_code: str
+    is_new: bool
+
+
+class ReviewSubmission(BaseModel):
+    quality: int = Field(ge=0, le=5)
+
+
+class ReviewResult(BaseModel):
+    vocabulary_item_id: int
+    repetitions: int
+    ease_factor: float
+    interval_days: int
+    next_review_date: date

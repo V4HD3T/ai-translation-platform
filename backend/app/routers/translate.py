@@ -6,7 +6,14 @@ from sqlmodel import Session, select
 from app.database import get_session
 from app.models import Language, TranslationHistory, User
 from app.routers.auth import get_current_user, get_current_user_optional
-from app.schemas import LanguageRead, TranslateRequest, TranslateResponse
+from app.schemas import (
+    DetectLanguageRequest,
+    DetectLanguageResponse,
+    LanguageRead,
+    TranslateRequest,
+    TranslateResponse,
+)
+from app.services.language_detection import detect_language
 from app.services.translation_service import TranslationService, get_translation_service
 
 router = APIRouter(tags=["translate"])
@@ -15,6 +22,20 @@ router = APIRouter(tags=["translate"])
 @router.get("/languages", response_model=List[LanguageRead])
 def list_languages(session: Session = Depends(get_session)):
     return session.exec(select(Language)).all()
+
+
+@router.post("/detect-language", response_model=DetectLanguageResponse)
+def detect_language_endpoint(payload: DetectLanguageRequest):
+    """Guesses the language of a piece of text, restricted to the app's
+    supported languages. `is_reliable` is false for short or ambiguous
+    input — see app/services/language_detection.py for why detection on
+    short phrases can't be fully trusted with a lightweight, offline model."""
+    result = detect_language(payload.text)
+    return DetectLanguageResponse(
+        language_code=result.language_code,
+        confidence=result.confidence,
+        is_reliable=result.is_reliable,
+    )
 
 
 @router.post("/translate", response_model=TranslateResponse)

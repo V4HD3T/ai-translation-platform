@@ -76,3 +76,21 @@ export interface UserStats {
   average_quiz_score: number;
   courses: CourseProgress[];
 }
+
+export interface ReviewQueueItem {
+  vocabulary_item_id: number;
+  word: string;
+  translation: string;
+  example_sentence: string;
+  lesson_id: number;
+  language_code: string;
+  is_new: boolean;
+}
+
+export interface ReviewResult {
+  vocabulary_item_id: number;
+  repetitions: number;
+  ease_factor: number;
+  interval_days: number;
+  next_review_date: string;
+}

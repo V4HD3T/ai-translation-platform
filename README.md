@@ -1,13 +1,28 @@
 # Lingua — AI Translation and Language Learning Platform
 
-**Version:** 0.0.3
+**Version:** 0.0.4
 
 A platform offering real-time translation and interactive language
 learning for multilingual users. Built as part of a university graduation
 project.
 
 For the full architecture, technology rationale, and roadmap, see
-**[ARCHITECTURE.md](./ARCHITECTURE.md)**.
+**[ARCHITECTURE.md](./ARCHITECTURE.md)**. For the complete version history,
+see **[CHANGELOG.md](./CHANGELOG.md)**.
+
+## What's new in 0.0.4
+
+- **Automatic language detection** — an opt-in "Detect language" option on
+  the translate page (`POST /detect-language`).
+- **Text-to-speech** — a speaker button reads translations and vocabulary
+  words aloud, browser-based, no server round-trip.
+- **Spaced repetition** — a real SM-2 algorithm behind a new `/review`
+  flashcard flow (`GET /users/me/review-queue`, `POST
+  /vocabulary/{id}/review`).
+- Backend: 51/51 tests passing (24 new this version).
+
+Full details, including honest notes on where automatic language detection
+is and isn't reliable: `CHANGELOG.md`.
 
 ## Quick start
 
@@ -38,10 +53,11 @@ and architecture notes.
 
 ## Status
 
-- ✅ Backend: authentication, translation, courses/lessons/vocabulary, quizzes, progress/streak — 30 tests passing
+- ✅ Backend: auth, translation, courses/lessons/vocabulary, quizzes, progress/streak, language detection, spaced repetition — 51 tests passing
 - ✅ Frontend: a working interface for every flow (React + TypeScript)
-- ✅ Speech recognition: voice input for translation + pronunciation practice (browser-based, no model download)
+- ✅ Speech: voice input (translation + pronunciation practice) and voice output (translations + vocabulary), both browser-based, no model download
 - ✅ Progress tracking: daily streak, per-course completion percentage (`/progress`)
+- ✅ Spaced repetition: SM-2-scheduled vocabulary review (`/review`)
 - ⏳ Up next: the real NLLB model (needs to be set up locally), content expansion, end-to-end testing
 
-(Full roadmap: `ARCHITECTURE.md` §6)
+(Full roadmap: `ARCHITECTURE.md` §6 · Full version history: `CHANGELOG.md`)

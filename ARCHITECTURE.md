@@ -1,6 +1,6 @@
 # AI-Based Automatic Translation and Language Learning Platform
 
-**Version:** 0.0.3
+**Version:** 0.0.4
 
 An integrated platform offering real-time translation and interactive
 language learning (quizzes + vocabulary + speaking practice) for
@@ -9,11 +9,14 @@ multilingual users.
 ## 1. Scope
 
 - Transformer-based translation engine (NLLB-200 — 200+ languages, single model)
+- Automatic source-language detection
 - Interactive quiz system (multiple choice, automatic scoring)
 - Course → lesson → vocabulary hierarchy
+- Spaced repetition (SM-2) for vocabulary review
 - User accounts, session management (JWT), translation history
 - Progress tracking: daily streak, per-course completion percentage
-- Browser-based speech recognition for dictation and pronunciation practice
+- Browser-based speech recognition (dictation, pronunciation practice) and
+  text-to-speech (hearing translations and vocabulary)
 
 ## 2. Architecture
 
@@ -58,6 +61,8 @@ speech recognition                            (user, course, quiz, history)
 - `TranslationHistory` — the user's past translations
 - `Course` → `Lesson` → `VocabularyItem` — learning content hierarchy
 - `Quiz` → `QuizQuestion`, `QuizAttempt` — quiz questions and user attempts
+- `VocabularyProgress` — one row per (user, word): SM-2 schedule (ease
+  factor, interval, repetitions, next review date)
 
 See `backend/app/models.py` for the full field list.
 
@@ -121,10 +126,28 @@ this environment)
   stat tiles, and per-course progress bars. "Progress" link in the NavBar
   (visible when logged in).
 
-Backend: **30 tests passing**. See `backend/README.md` and
+Backend: **51 tests passing**. See `backend/README.md` and
 `frontend/README.md` for setup and run instructions.
 
-## 6. Roadmap (~6 months to graduation)
+**v0.0.4 — Automatic language detection, text-to-speech, spaced
+repetition** ✅ (from here on, new work is tracked by version rather than
+by the original phase numbers below — see `CHANGELOG.md` for the itemized
+list of every version's changes)
+
+- `POST /detect-language`, restricted to the app's 5 supported languages,
+  gated by a length + confidence heuristic after empirically finding that
+  short greetings are genuinely unreliable with a lightweight offline
+  model. Opt-in on the frontend ("Detect language" dropdown option) —
+  never silently overrides a manual choice.
+- `useSpeechSynthesis` hook (browser `SpeechSynthesis` API): speaker
+  buttons on the translate page and next to each vocabulary word, so
+  learners hear a word before the mic asks them to say it.
+- Real SM-2 spaced repetition: `VocabularyProgress` table, `GET
+  /users/me/review-queue`, `POST /vocabulary/{id}/review`, and a
+  flashcard-style `/review` page (reveal → rate Again/Good/Easy).
+- 24 new tests (51 total), all three features verified live end-to-end.
+
+## 6. Roadmap
 
 | Phase | Duration | Content |
 |---|---|---|
@@ -132,14 +155,21 @@ Backend: **30 tests passing**. See `backend/README.md` and
 | 2 | ✅ Done | Frontend: translation UI, course/lesson flow, quiz UI |
 | 3 | ✅ Done | Speech recognition / pronunciation practice via the Web Speech API |
 | 4 | ✅ Done | Progress tracking, streak system |
-| 1 | 2-3 weeks | Real NLLB model integration (can't be tested in this environment — it needs access to huggingface.co, so this has to happen on your own machine) |
-| 5 | 2-3 weeks | End-to-end testing, usability evaluation, bug fixing |
-| 6 | 2 weeks | Project report, documentation, defense presentation |
+| — | ✅ Done (v0.0.4) | Automatic language detection, text-to-speech, spaced repetition |
+| 1 | pending | Real NLLB model integration (can't be tested in this environment — it needs access to huggingface.co, so this has to happen on your own machine) |
+| — | pending | Translation confidence score / alternative translations |
+| — | pending | Contextual / idiomatic-phrase warnings |
+| — | pending | Personalized vocabulary suggestions drawn from translation history |
+| 5 | pending | End-to-end testing, usability evaluation, bug fixing |
+| 6 | pending | Project report, documentation, defense presentation |
 
-About 6-8 weeks remain — still a comfortable buffer within the 6-month
-window.
+Everything under "AI / translation engine" is now done except real NLLB
+integration (blocked on this environment's network access) and the three
+items above it, which are next.
 
 ## 7. Next step
 
-Real NLLB integration (needs to happen on your machine together), content
-expansion, or moving straight into the testing/usability phase — which one?
+From the AI/translation-engine list: confidence scores + alternative
+translations, or contextual/idiomatic warnings, or personalized vocabulary
+suggestions from translation history — which one? (Real NLLB integration
+is still queued separately, for a session on your own machine.)

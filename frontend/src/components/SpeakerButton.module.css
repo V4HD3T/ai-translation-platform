@@ -1,0 +1,34 @@
+.button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--ink-600);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.button:hover:not(:disabled) {
+  border-color: var(--accent-500);
+  color: var(--accent-600);
+}
+
+.button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.speaking {
+  background: var(--accent-500);
+  border-color: var(--accent-500);
+  color: var(--text-on-accent);
+}
+
+.speaking:hover:not(:disabled) {
+  color: var(--text-on-accent);
+}
