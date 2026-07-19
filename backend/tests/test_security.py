@@ -273,3 +273,43 @@ def test_security_headers_present(client):
     assert response.headers["x-frame-options"] == "DENY"
     assert "default-src 'self'" in response.headers["content-security-policy"]
     assert "max-age" in response.headers["strict-transport-security"]
+
+
+# --- Optional-auth endpoints: invalid tokens must 401, not silently downgrade ---
+
+
+def test_optional_auth_endpoint_rejects_invalid_token(client):
+    # A *present but invalid* token is a 401, not a silent anonymous
+    # downgrade. The frontend attaches its access token to these endpoints
+    # and only knows to refresh the session when it sees a 401 -- silently
+    # serving an anonymous 200 meant expired sessions kept "working" while
+    # history saving and adaptive difficulty quietly switched off.
+    response = client.post(
+        "/translate",
+        headers={"Authorization": "Bearer not-a-real-token"},
+        json={"text": "hello there", "source_lang": "en", "target_lang": "es"},
+    )
+    assert response.status_code == 401
+
+
+def test_optional_auth_endpoint_rejects_expired_token(client):
+    from app.security import create_access_token
+
+    _register_and_login(client, username="expiredsess", email="expiredsess@example.com")
+    expired = create_access_token(subject="1", expires_minutes=-1)
+    response = client.post(
+        "/translate",
+        headers={"Authorization": f"Bearer {expired}"},
+        json={"text": "hello there", "source_lang": "en", "target_lang": "es"},
+    )
+    assert response.status_code == 401
+
+
+def test_access_token_with_non_numeric_subject_is_rejected_cleanly(client):
+    # A signed token whose `sub` isn't a well-formed user id should be a
+    # clean 401, not an unhandled int() ValueError turning into a 500.
+    from app.security import create_access_token
+
+    weird = create_access_token(subject="definitely-not-a-user-id")
+    response = client.get("/auth/me", headers={"Authorization": f"Bearer {weird}"})
+    assert response.status_code == 401

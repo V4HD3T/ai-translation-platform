@@ -6,7 +6,7 @@ import {
   type ReactNode,
 } from "react";
 import * as authApi from "../api/auth";
-import { clearTokens, getAccessToken, getRefreshToken, setTokens } from "../api/client";
+import { ApiError, clearTokens, getAccessToken, getRefreshToken, setTokens } from "../api/client";
 import type { User } from "../types";
 
 interface AuthContextValue {
@@ -37,7 +37,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     authApi
       .fetchCurrentUser()
       .then(setUser)
-      .catch(() => clearTokens())
+      .catch((err) => {
+        // Only discard the session when the backend actually rejected it.
+        // fetch() also throws on network failure (backend down, restarting,
+        // no connection) — logging the user out for that would mean every
+        // API blip on page load silently destroyed a valid session.
+        if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
+          clearTokens();
+        }
+      })
       .finally(() => setIsLoading(false));
   }, []);
 

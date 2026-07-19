@@ -9,6 +9,7 @@ from app.models import Course, Lesson, Quiz, QuizAttempt, QuizQuestion, User
 from app.routers.auth import get_current_user, get_current_user_optional
 from app.schemas import AchievementRead, QuizQuestionRead, QuizRead, QuizResult, QuizSubmission
 from app.services.achievements import check_and_award
+from app.services.text_normalization import fold_case
 
 router = APIRouter(tags=["quizzes"])
 
@@ -112,10 +113,23 @@ def submit_quiz(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ):
+    quiz = session.get(Quiz, quiz_id)
+    if not quiz:
+        raise HTTPException(status_code=404, detail="Quiz not found")
     questions = session.exec(select(QuizQuestion).where(QuizQuestion.quiz_id == quiz_id)).all()
     if not questions:
         raise HTTPException(status_code=404, detail="Quiz not found")
     questions_by_id = {q.id: q for q in questions}
+
+    # Answers are compared case-insensitively with *language-aware* folding
+    # (see app/services/text_normalization.py): the quiz's language comes
+    # from its course, and Turkish in particular breaks under plain
+    # .lower() ("BAŞINI".lower() != "başını"). With the current Spanish
+    # seed content this is a no-op; it matters the moment Turkish course
+    # content exists.
+    lesson = session.get(Lesson, quiz.lesson_id)
+    course = session.get(Course, lesson.course_id) if lesson else None
+    quiz_language = course.language_code if course else None
 
     # Score against what was actually submitted, not every question that
     # exists in the quiz -- adaptive selection (see _select_adaptive_questions
@@ -125,7 +139,9 @@ def submit_quiz(
     total = len(submission.answers)
     for question_id_str, given in submission.answers.items():
         question = questions_by_id.get(int(question_id_str)) if question_id_str.isdigit() else None
-        if question and given.strip().lower() == question.correct_answer.strip().lower():
+        if question and fold_case(given.strip(), quiz_language) == fold_case(
+            question.correct_answer.strip(), quiz_language
+        ):
             correct_count += 1
 
     score = round((correct_count / total) * 100, 2) if total else 0.0

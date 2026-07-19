@@ -15,6 +15,8 @@ hidden behind confident-sounding output.
 
 from dataclasses import dataclass
 
+from app.services.text_normalization import fold_case
+
 
 @dataclass
 class IdiomMatch:
@@ -63,7 +65,15 @@ IDIOM_DICTIONARY: dict[str, list[IdiomMatch]] = {
 
 def find_idioms(text: str, language_code: str) -> list[IdiomMatch]:
     """Returns every dictionary entry for `language_code` whose phrase
-    appears (case-insensitively) inside `text`."""
+    appears (case-insensitively) inside `text`.
+
+    Case-insensitivity here is language-aware, not plain `.lower()`:
+    Turkish's İ/I letters don't survive Unicode default lowercasing (see
+    app/services/text_normalization.py), so "BAŞINI YEDİ" previously
+    failed to match the "başını ye" dictionary entry. Both the input text
+    and the dictionary phrase are folded with the same rules."""
     entries = IDIOM_DICTIONARY.get(language_code, [])
-    lowered = text.lower()
-    return [entry for entry in entries if entry.phrase in lowered]
+    folded_text = fold_case(text, language_code)
+    return [
+        entry for entry in entries if fold_case(entry.phrase, language_code) in folded_text
+    ]

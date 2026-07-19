@@ -15,6 +15,7 @@ export function ProgressPage() {
   const [error, setError] = useState<string | null>(null);
   const [isEditingGoal, setIsEditingGoal] = useState(false);
   const [goalInput, setGoalInput] = useState("");
+  const [goalError, setGoalError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchMyStats()
@@ -30,13 +31,22 @@ export function ProgressPage() {
 
   async function handleSaveGoal() {
     const parsed = Number(goalInput);
-    if (!Number.isInteger(parsed) || parsed < 1) return;
+    // Mirrors the backend's DailyGoalUpdate bounds (1–200). The input's
+    // min/max attributes don't help here: this button isn't a form
+    // submit, so native validation never runs, and previously a typed
+    // out-of-range value failed silently (backend 422, empty catch).
+    if (!Number.isInteger(parsed) || parsed < 1 || parsed > 200) {
+      setGoalError("The goal must be a whole number between 1 and 200.");
+      return;
+    }
+    setGoalError(null);
     try {
       await updateDailyGoal(parsed);
       setStats((prev) => (prev ? { ...prev, daily_goal: parsed } : prev));
       setIsEditingGoal(false);
     } catch {
       // leave the form open so the person can retry
+      setGoalError("Couldn't save your goal. Please try again.");
     }
   }
 
@@ -83,6 +93,7 @@ export function ProgressPage() {
                   className={styles.goalEditButton}
                   onClick={() => {
                     setGoalInput(String(stats.daily_goal));
+                    setGoalError(null);
                     setIsEditingGoal(true);
                   }}
                 >
@@ -91,20 +102,23 @@ export function ProgressPage() {
               )}
             </div>
             {isEditingGoal ? (
-              <div className={styles.goalEditRow}>
-                <input
-                  type="number"
-                  min={1}
-                  max={200}
-                  className={styles.goalInput}
-                  value={goalInput}
-                  onChange={(e) => setGoalInput(e.target.value)}
-                  autoFocus
-                />
-                <button type="button" className={styles.goalSaveButton} onClick={handleSaveGoal}>
-                  Save
-                </button>
-              </div>
+              <>
+                <div className={styles.goalEditRow}>
+                  <input
+                    type="number"
+                    min={1}
+                    max={200}
+                    className={styles.goalInput}
+                    value={goalInput}
+                    onChange={(e) => setGoalInput(e.target.value)}
+                    autoFocus
+                  />
+                  <button type="button" className={styles.goalSaveButton} onClick={handleSaveGoal}>
+                    Save
+                  </button>
+                </div>
+                {goalError && <p className={styles.goalError}>{goalError}</p>}
+              </>
             ) : (
               <>
                 <p className={styles.goalDetail}>

@@ -62,6 +62,61 @@ Completes the "Güvenlik" topic. Six items:
   until a small `_as_aware_utc()` helper normalized it.
 - 21 new tests (106 total).
 
+### Fixed — post-review bug-fix pass
+
+A full read-through of the codebase after the security work, hunting for
+bugs rather than adding features. Findings, worst first:
+
+- **Expired sessions silently downgraded to anonymous**:
+  `get_current_user_optional` swallowed *invalid* tokens and returned
+  None, the same as no token at all. Consequence: ~30 minutes after
+  login (access-token expiry), `/translate` kept returning 200 — but as
+  an anonymous request, so nothing was saved to history (while the UI
+  kept saying "Saved to your translation history") and adaptive quiz
+  difficulty switched off. The frontend's refresh-and-retry only reacts
+  to a 401, which this path never produced. Now: no token → anonymous;
+  a token that is present but invalid → 401, which correctly triggers
+  the refresh flow.
+- **Adaptive difficulty was never active in the UI**: the frontend's
+  `getQuizByLesson` call didn't send the Authorization header at all, so
+  the backend always served the unfiltered anonymous question set.
+  One-line fix (`auth: true`), found by reading, confirmed by the code
+  path.
+- **Turkish İ/I case folding**: `"BAŞINI YEDİ"` produced no idiom
+  warning because Unicode default lowercasing maps I→i (not ı) and
+  İ→i+combining-dot. New `app/services/text_normalization.py` applies
+  Turkish-specific capital mappings before `casefold()`, used by both
+  idiom matching and quiz answer comparison (which resolves the quiz's
+  language via its course). Bonus from switching lower()→casefold():
+  German ß/SS now compare equal.
+- **Email verification page showed failure after success**: React 18
+  StrictMode runs effects twice in development; the second POST hit the
+  (by-design single-use) token, got a 400, and overwrote the first
+  call's success state. Guarded with a ref.
+- **Network blips logged people out**: AuthContext cleared tokens on
+  *any* `/auth/me` failure at mount, including the backend simply being
+  down. Now only a real 401/403 clears the session.
+- **Stale `vite.config.js` shadowed `vite.config.ts`**: `tsc -b` was
+  emitting `vite.config.js`/`.d.ts` into the project root (gitignored,
+  but present on disk — and Vite loads `.js` before `.ts`, so edits to
+  the real config would silently do nothing). Emission redirected via
+  `emitDeclarationOnly` + an `outDir` inside `node_modules/`.
+- Smaller: registration race on the unique username/email constraint now
+  returns the same 400 as the fast path instead of a 500; a signed token
+  with a malformed `sub` claim is a clean 401 instead of a ValueError
+  500; `microphone=()` removed from the Permissions-Policy header (the
+  app's own speech features need the mic if the SPA is ever served from
+  the API's origin); the daily-goal editor validates its 1–200 bounds
+  and reports save failures instead of failing silently.
+- Known design weakness, documented but deliberately *not* changed here:
+  quiz scoring grades only the submitted answers (a tested, documented
+  choice made for adaptive-subset consistency), which allows submitting
+  a single known answer for a 100% score and the `perfect_quiz` badge.
+  The proper fix is a server-side record of which questions were served
+  per attempt — a schema change that belongs with the planned Alembic
+  migration work, not a silent contract change in a bug-fix pass.
+- 12 new regression tests (118 total).
+
 ## [0.0.6] — Language learning / pedagogy
 
 Completes the "Dil öğrenme / pedagoji" topic. One item was already covered

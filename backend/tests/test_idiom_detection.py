@@ -44,3 +44,19 @@ def test_find_idioms_turkish_phrase_matches_despite_conjugation():
     matches = find_idioms("Sınav sonucunu görünce içi içine sığmadı.", "tr")
     assert len(matches) == 1
     assert matches[0].phrase == "içi içine sığma"
+
+
+def test_find_idioms_turkish_uppercase_dotted_capital_i():
+    # "YEDİ" contains İ (dotted capital I). Unicode default lowercasing
+    # maps it to "i" + a combining dot (U+0307), which used to break the
+    # substring match against the plain-"i" dictionary entry.
+    matches = find_idioms("BAŞINI YEDİ resmen.", "tr")
+    assert [m.phrase for m in matches] == ["başını ye"]
+
+
+def test_find_idioms_turkish_uppercase_dotless_capital_i():
+    # "ALTINDA" contains I (dotless capital I), which must fold to "ı",
+    # not "i" -- plain .lower() produced "altinda" and never matched
+    # "altında".
+    matches = find_idioms("DİLİNİN ALTINDA bir şey var.", "tr")
+    assert [m.phrase for m in matches] == ["dilinin altında"]

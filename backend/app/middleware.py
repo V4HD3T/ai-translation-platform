@@ -23,7 +23,14 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-        response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
+        # Note: microphone is deliberately NOT denied here. The frontend's
+        # speech-recognition features (MicButton, pronunciation practice)
+        # need it, and while today the SPA is served from a separate origin
+        # (so this header wouldn't reach it), a future single-origin
+        # deployment (e.g. FastAPI serving the built frontend from one
+        # container) would silently break the mic with a very confusing
+        # failure mode if microphone=() were sent.
+        response.headers["Permissions-Policy"] = "geolocation=(), camera=()"
         response.headers["Content-Security-Policy"] = "default-src 'self'"
         # Only meaningful over HTTPS; harmless to send over HTTP (browsers ignore it there).
         response.headers["Strict-Transport-Security"] = "max-age=63072000; includeSubDomains"

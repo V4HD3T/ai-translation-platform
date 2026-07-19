@@ -145,6 +145,12 @@
   cursor: pointer;
 }
 
+.goalError {
+  margin: var(--space-2) 0 0;
+  font-size: 13px;
+  color: var(--error-500);
+}
+
 .badgeGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));

@@ -3,6 +3,7 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 
 from app.config import settings
@@ -110,7 +111,16 @@ def register(
         native_language=payload.native_language,
     )
     session.add(user)
-    session.commit()
+    try:
+        session.commit()
+    except IntegrityError:
+        # Two registrations for the same username/email racing past the
+        # SELECT above: the database's unique constraint is the real
+        # guard; the SELECT is only the friendly fast path. Without this,
+        # the loser of the race gets an unhandled 500 instead of the same
+        # 400 it would have gotten a millisecond later.
+        session.rollback()
+        raise HTTPException(status_code=400, detail="Username or email is already registered")
     session.refresh(user)
 
     raw_token = _create_auth_token(
@@ -200,15 +210,28 @@ def logout(payload: LogoutRequest, session: Session = Depends(get_session)):
     return MessageResponse(message="Logged out")
 
 
+def _user_from_access_token(token: str, session: Session) -> Optional[User]:
+    """Resolves an access token to its User. Returns None if the token is
+    invalid/expired, its subject isn't a well-formed user id, or the user
+    no longer exists. The int() guard means a malformed `sub` claim yields
+    a clean None (-> 401 in the callers below) instead of an unhandled
+    ValueError (-> 500)."""
+    subject = decode_access_token(token)
+    if subject is None:
+        return None
+    try:
+        user_id = int(subject)
+    except (TypeError, ValueError):
+        return None
+    return session.get(User, user_id)
+
+
 def get_current_user(
     token: str = Depends(oauth2_scheme), session: Session = Depends(get_session)
 ) -> User:
-    user_id = decode_access_token(token)
-    if user_id is None:
-        raise HTTPException(status_code=401, detail="Invalid or expired session")
-    user = session.get(User, int(user_id))
+    user = _user_from_access_token(token, session)
     if user is None:
-        raise HTTPException(status_code=401, detail="User not found")
+        raise HTTPException(status_code=401, detail="Invalid or expired session")
     return user
 
 
@@ -216,14 +239,25 @@ def get_current_user_optional(
     token: Optional[str] = Depends(oauth2_scheme_optional),
     session: Session = Depends(get_session),
 ) -> Optional[User]:
-    """Returns the logged-in user; None if there is no token (for endpoints
-    that allow anonymous access, e.g. translating without logging in)."""
+    """For endpoints that allow anonymous access (e.g. translating without
+    logging in): no Authorization header at all -> None, proceed
+    anonymously.
+
+    A token that is *present but invalid* is a 401, not None. This
+    distinction matters more than it looks: the frontend attaches its
+    access token to these endpoints and only knows to refresh an expired
+    session when it sees a 401. Before this change, an expired token was
+    silently downgraded to anonymous — a 200 response, so no refresh was
+    ever triggered — which meant that ~30 minutes after login, every
+    translation quietly stopped being saved to history (while the UI kept
+    saying "Saved to your translation history") and adaptive quiz
+    difficulty silently switched off."""
     if not token:
         return None
-    user_id = decode_access_token(token)
-    if user_id is None:
-        return None
-    return session.get(User, int(user_id))
+    user = _user_from_access_token(token, session)
+    if user is None:
+        raise HTTPException(status_code=401, detail="Invalid or expired session")
+    return user
 
 
 @router.post("/logout-all", response_model=MessageResponse)
