@@ -1,5 +1,5 @@
 import { apiRequest } from "./client";
-import type { Language, TranslateResult } from "../types";
+import type { Language, Page, TranslateResult } from "../types";
 
 export interface DetectLanguageResult {
   language_code: string;
@@ -30,6 +30,9 @@ export function translateText(
   });
 }
 
-export function fetchTranslationHistory(): Promise<TranslateResult[]> {
-  return apiRequest<TranslateResult[]>("/translate/history", { auth: true });
+export function fetchTranslationHistory(limit = 20, offset = 0): Promise<Page<TranslateResult>> {
+  return apiRequest<Page<TranslateResult>>(
+    `/translate/history?limit=${limit}&offset=${offset}`,
+    { auth: true }
+  );
 }

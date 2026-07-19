@@ -20,6 +20,10 @@ from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 from threading import Lock
 
+from fastapi import HTTPException, Request, status
+
+from app.services.security_logging import log_event
+
 
 class RateLimiter:
     def __init__(self, max_attempts: int, window_seconds: int):
@@ -67,3 +71,42 @@ class RateLimiter:
 login_rate_limiter = RateLimiter(max_attempts=5, window_seconds=60)
 register_rate_limiter = RateLimiter(max_attempts=5, window_seconds=60)
 password_reset_rate_limiter = RateLimiter(max_attempts=3, window_seconds=300)
+
+
+# --- Shared enforcement + app-wide limiters (v0.0.8) -------------------------
+#
+# v0.0.7 introduced per-endpoint limiters for the auth flows, enforced by a
+# private helper inside the auth router. v0.0.8 generalises that: the
+# HTTP-shaped part of enforcement (429 + Retry-After) lives here so any
+# router can rate-limit an endpoint in one line, and two new limiters cover
+# the rest of the API -- a per-IP backstop across all endpoints (enforced
+# by GeneralRateLimitMiddleware in app/middleware.py) and a tighter budget
+# for /translate, the endpoint that will eventually run real model
+# inference and is therefore the most expensive thing an abuser can call.
+
+
+def client_ip(request: Request) -> str:
+    """Best-effort per-client key for rate limiting. Behind a reverse
+    proxy this is the proxy's address unless forwarded headers are
+    configured (a deployment concern, noted for the v0.1.0 deploy guide)."""
+    return request.client.host if request.client else "unknown"
+
+
+def enforce_rate_limit(limiter: RateLimiter, key: str, endpoint: str) -> None:
+    """Raises 429 (with a Retry-After hint) when `key` is over budget on
+    `limiter`. Lives in the service rather than a router so the response
+    shape stays identical everywhere it's used."""
+    if not limiter.check(key):
+        log_event("rate_limit_exceeded", endpoint=endpoint, key=key)
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many attempts. Please wait a bit before trying again.",
+            headers={"Retry-After": str(int(limiter.window.total_seconds()))},
+        )
+
+
+# The backstop is deliberately generous (120/min ≈ 2 requests/second
+# sustained): it should never bother a real person clicking around, only
+# scripts hammering the API.
+api_rate_limiter = RateLimiter(max_attempts=120, window_seconds=60)
+translate_rate_limiter = RateLimiter(max_attempts=30, window_seconds=60)

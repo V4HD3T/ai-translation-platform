@@ -23,7 +23,13 @@ from app.schemas import (
 )
 from app.security import create_access_token, decode_access_token, hash_password, verify_password
 from app.services.email_service import EmailService, get_email_service
-from app.services.rate_limiter import login_rate_limiter, password_reset_rate_limiter, register_rate_limiter
+from app.services.rate_limiter import (
+    client_ip as _client_ip,
+    enforce_rate_limit as _rate_limit,
+    login_rate_limiter,
+    password_reset_rate_limiter,
+    register_rate_limiter,
+)
 from app.services.security_logging import log_event
 from app.services.tokens import generate_token, hash_token
 
@@ -44,19 +50,6 @@ def _as_aware_utc(value: datetime) -> datetime:
     tzinfo (never converting/shifting, just labeling) is correct here
     specifically because every write path already normalizes to UTC."""
     return value if value.tzinfo is not None else value.replace(tzinfo=timezone.utc)
-
-
-def _client_ip(request: Request) -> str:
-    return request.client.host if request.client else "unknown"
-
-
-def _rate_limit(limiter, key: str, endpoint: str) -> None:
-    if not limiter.check(key):
-        log_event("rate_limit_exceeded", endpoint=endpoint, key=key)
-        raise HTTPException(
-            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail="Too many attempts. Please wait a bit before trying again.",
-        )
 
 
 def _issue_tokens(user: User, session: Session) -> Token:

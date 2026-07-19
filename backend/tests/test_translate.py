@@ -89,5 +89,7 @@ def test_translate_and_check_history(client):
 
     history = client.get("/translate/history", headers=headers)
     assert history.status_code == 200
-    assert len(history.json()) == 1
-    assert history.json()[0]["source_text"] == "Good morning"
+    body = history.json()
+    assert body["total"] == 1
+    assert len(body["items"]) == 1
+    assert body["items"][0]["source_text"] == "Good morning"

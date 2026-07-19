@@ -1,9 +1,10 @@
 def test_list_courses(client):
     response = client.get("/courses")
     assert response.status_code == 200
-    courses = response.json()
-    assert len(courses) == 1
-    assert courses[0]["title"] == "Spanish for Beginners"
+    page = response.json()
+    assert page["total"] == 1
+    assert len(page["items"]) == 1
+    assert page["items"][0]["title"] == "Spanish for Beginners"
 
 
 def test_get_course(client):

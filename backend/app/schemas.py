@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from typing import Dict, List, Optional
+from typing import Dict, Generic, List, Optional, TypeVar
 
 from pydantic import BaseModel, EmailStr, Field
 
@@ -200,3 +200,21 @@ class VocabularySuggestionRead(BaseModel):
 
 class DailyGoalUpdate(BaseModel):
     daily_goal: int = Field(ge=1, le=200)
+
+
+T = TypeVar("T")
+
+
+class Page(BaseModel, Generic[T]):
+    """Pagination envelope shared by list endpoints (v0.0.8).
+
+    `total` is the full matching-row count (ignoring limit/offset), so a
+    client can render "showing X of Y" and knows whether another page
+    exists without issuing a second request. `limit` is capped at the
+    endpoints themselves via Query(..., ge=1, le=100).
+    """
+
+    items: List[T]
+    total: int
+    limit: int
+    offset: int

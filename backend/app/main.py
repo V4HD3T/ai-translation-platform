@@ -7,7 +7,7 @@ from sqlmodel import Session, select
 
 from app.config import settings
 from app.database import engine, init_db
-from app.middleware import SecurityHeadersMiddleware
+from app.middleware import GeneralRateLimitMiddleware, SecurityHeadersMiddleware
 from app.models import Course, Language, Lesson, Quiz, QuizQuestion, VocabularyItem
 from app.routers import achievements, auth, courses, quizzes, review, stats, suggestions, translate
 from app.services.security_logging import log_event
@@ -149,6 +149,13 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title=settings.app_name, version=settings.app_version, lifespan=lifespan)
 
+# Middleware order note: add_middleware() wraps outside-in, so the first
+# one added here is the innermost. The rate limiter sits innermost on
+# purpose: its 429 responses then still pass through
+# SecurityHeadersMiddleware and CORSMiddleware on the way out (and CORS
+# preflight OPTIONS requests are answered by the outermost CORSMiddleware
+# before ever reaching the limiter).
+app.add_middleware(GeneralRateLimitMiddleware)
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(
     CORSMiddleware,

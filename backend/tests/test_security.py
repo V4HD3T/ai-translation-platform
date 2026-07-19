@@ -313,3 +313,46 @@ def test_access_token_with_non_numeric_subject_is_rejected_cleanly(client):
     weird = create_access_token(subject="definitely-not-a-user-id")
     response = client.get("/auth/me", headers={"Authorization": f"Bearer {weird}"})
     assert response.status_code == 401
+
+
+# --- v0.0.8: app-wide + /translate rate limiting ---
+
+
+def test_translate_endpoint_is_rate_limited(client, monkeypatch):
+    from app.services.rate_limiter import translate_rate_limiter
+
+    monkeypatch.setattr(translate_rate_limiter, "max_attempts", 3)
+    payload = {"text": "hello", "source_lang": "en", "target_lang": "es"}
+    for _ in range(3):
+        assert client.post("/translate", json=payload).status_code == 200
+    blocked = client.post("/translate", json=payload)
+    assert blocked.status_code == 429
+    assert "Retry-After" in blocked.headers
+
+
+def test_general_api_rate_limit_backstop(client, monkeypatch):
+    from app.services.rate_limiter import api_rate_limiter
+
+    monkeypatch.setattr(api_rate_limiter, "max_attempts", 5)
+    for _ in range(5):
+        assert client.get("/languages").status_code == 200
+    blocked = client.get("/languages")
+    assert blocked.status_code == 429
+    assert "Retry-After" in blocked.headers
+
+
+def test_health_endpoint_is_exempt_from_general_rate_limit(client, monkeypatch):
+    # Deployment platforms poll /health constantly; it must never 429.
+    from app.services.rate_limiter import api_rate_limiter
+
+    monkeypatch.setattr(api_rate_limiter, "max_attempts", 1)
+    for _ in range(5):
+        assert client.get("/health").status_code == 200
+
+
+def test_auth_rate_limit_response_includes_retry_after(client):
+    for _ in range(5):
+        client.post("/auth/login", data={"username": "ghost", "password": "wrong-password"})
+    blocked = client.post("/auth/login", data={"username": "ghost", "password": "wrong-password"})
+    assert blocked.status_code == 429
+    assert "Retry-After" in blocked.headers

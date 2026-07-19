@@ -1,11 +1,12 @@
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import func
 from sqlmodel import Session, select
 
 from app.database import get_session
 from app.models import Course, Lesson, VocabularyItem
-from app.schemas import CourseRead, LessonRead, VocabularyRead
+from app.schemas import CourseRead, LessonRead, Page, VocabularyRead
 
 router = APIRouter(tags=["courses"])
 
@@ -24,9 +25,26 @@ def _build_lesson_read(lesson: Lesson, session: Session) -> LessonRead:
     )
 
 
-@router.get("/courses", response_model=List[CourseRead])
-def list_courses(session: Session = Depends(get_session)):
-    return session.exec(select(Course)).all()
+@router.get("/courses", response_model=Page[CourseRead])
+def list_courses(
+    limit: int = Query(20, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+    session: Session = Depends(get_session),
+):
+    """Paginated (Page envelope). With one seeded course this is
+    admittedly ceremonial today -- but the admin endpoints planned for
+    v0.0.9 make the catalogue growable at runtime, and changing a
+    response shape is much cheaper now than after clients depend on it."""
+    total = session.exec(select(func.count(Course.id))).one()
+    courses = session.exec(
+        select(Course).order_by(Course.id).offset(offset).limit(limit)
+    ).all()
+    return Page[CourseRead](
+        items=[CourseRead.model_validate(course, from_attributes=True) for course in courses],
+        total=total,
+        limit=limit,
+        offset=offset,
+    )
 
 
 @router.get("/courses/{course_id}", response_model=CourseRead)

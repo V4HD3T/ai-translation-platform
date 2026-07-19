@@ -1,6 +1,7 @@
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query, Request
+from sqlalchemy import func
 from sqlmodel import Session, select
 
 from app.database import get_session
@@ -12,12 +13,14 @@ from app.schemas import (
     DetectLanguageResponse,
     IdiomWarning,
     LanguageRead,
+    Page,
     TranslateRequest,
     TranslateResponse,
 )
+from app.services.achievements import check_and_award
 from app.services.idiom_detection import find_idioms
 from app.services.language_detection import detect_language
-from app.services.achievements import check_and_award
+from app.services.rate_limiter import client_ip, enforce_rate_limit, translate_rate_limiter
 from app.services.translation_service import TranslationService, get_translation_service
 
 router = APIRouter(tags=["translate"])
@@ -44,6 +47,7 @@ def detect_language_endpoint(payload: DetectLanguageRequest):
 
 @router.post("/translate", response_model=TranslateResponse)
 def translate_text(
+    request: Request,
     payload: TranslateRequest,
     session: Session = Depends(get_session),
     service: TranslationService = Depends(get_translation_service),
@@ -56,6 +60,12 @@ def translate_text(
     translations, and any idiom warnings matched in the source text --
     see translation_service.py and idiom_detection.py for how each of
     those is actually computed (and their honest limitations)."""
+    # /translate gets its own (tighter) budget on top of the app-wide
+    # backstop in GeneralRateLimitMiddleware: once the real NLLB model is
+    # wired in, this is the one endpoint where every request costs actual
+    # model inference, which makes it the most attractive target for abuse.
+    enforce_rate_limit(translate_rate_limiter, client_ip(request), "translate")
+
     detail = service.translate_detailed(payload.text, payload.source_lang, payload.target_lang)
     idioms = find_idioms(payload.text, payload.source_lang)
 
@@ -89,22 +99,38 @@ def translate_text(
     )
 
 
-@router.get("/translate/history", response_model=List[TranslateResponse])
+@router.get("/translate/history", response_model=Page[TranslateResponse])
 def translation_history(
+    limit: int = Query(20, ge=1, le=100),
+    offset: int = Query(0, ge=0),
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ):
+    """Paginated, newest first. Returns a Page envelope (items + total)
+    rather than a bare list so the client can render "showing X of Y" and
+    knows whether another page exists without a second request. History
+    grows without bound per user, which made it the first endpoint that
+    genuinely needed this."""
+    user_filter = TranslationHistory.user_id == current_user.id
+    total = session.exec(select(func.count(TranslationHistory.id)).where(user_filter)).one()
     records = session.exec(
         select(TranslationHistory)
-        .where(TranslationHistory.user_id == current_user.id)
+        .where(user_filter)
         .order_by(TranslationHistory.created_at.desc())
+        .offset(offset)
+        .limit(limit)
     ).all()
-    return [
-        TranslateResponse(
-            source_text=r.source_text,
-            translated_text=r.target_text,
-            source_lang=r.source_lang,
-            target_lang=r.target_lang,
-        )
-        for r in records
-    ]
+    return Page[TranslateResponse](
+        items=[
+            TranslateResponse(
+                source_text=r.source_text,
+                translated_text=r.target_text,
+                source_lang=r.source_lang,
+                target_lang=r.target_lang,
+            )
+            for r in records
+        ],
+        total=total,
+        limit=limit,
+        offset=offset,
+    )

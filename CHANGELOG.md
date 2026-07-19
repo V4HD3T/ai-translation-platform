@@ -11,6 +11,44 @@ Turkish, then each given an English mirror at the same version number
 directly). New features starting from 0.0.4 are English-only going
 forward, one PATCH version per completed feature/topic.
 
+## [0.0.8] — Test infrastructure & backend polish
+
+The "cheapest insurance first" version: before any more features land,
+every push now has to survive the full test suite and a frontend
+type-check, and the API gets the two small pieces of production hygiene
+flagged during planning — rate limiting beyond the auth endpoints, and
+pagination on the lists that grow.
+
+### Added
+
+- **CI workflow** (`.github/workflows/ci.yml`): two jobs on every push
+  and pull request — backend `pytest` with coverage (pytest-cov,
+  `--cov-fail-under=88`; currently at 94%) and frontend `tsc -b && vite
+  build`. The security-scan workflow keeps its own schedule; this one is
+  the regression net that protects every version after it.
+- **App-wide rate limiting**: a per-IP backstop across the whole API
+  (120 req/min via `GeneralRateLimitMiddleware`; `/health` exempt because
+  deployment platforms poll it and a health check that can 429 reads as
+  an outage) plus a tighter 30/min budget on `/translate` — the endpoint
+  that will eventually run real model inference, and therefore the most
+  expensive thing an abuser can call. Enforcement (429 + `Retry-After`,
+  which all rate-limited responses now carry, auth included) moved out of
+  the auth router into `app/services/rate_limiter.py` so any router can
+  rate-limit an endpoint in one line.
+- **Pagination** on `/courses` and `/translate/history` via a shared
+  `Page[T]` envelope (`items`, `total`, `limit`, `offset`; limit 1–100,
+  default 20, newest-first for history). **Breaking change** for both
+  endpoints: responses are now envelopes, not bare arrays. Frontend
+  updated in the same version — history gets a "Load more" control with a
+  "showing X of Y" count, courses request one generous page.
+- 8 new tests (126 total): envelope shape, limit/offset slicing,
+  parameter validation, history ordering, translate + backstop limiters,
+  `/health` exemption, `Retry-After` presence.
+
+### Changed
+
+- Version bumped to 0.0.8 (backend config + frontend package).
+
 ## [0.0.7] — Security
 
 Completes the "Güvenlik" topic. Six items:

@@ -131,3 +131,12 @@ export interface VocabularySuggestion {
   lesson_id: number;
   frequency: number;
 }
+
+// Pagination envelope returned by list endpoints (mirrors the backend's
+// Page[T] schema, v0.0.8).
+export interface Page<T> {
+  items: T[];
+  total: number;
+  limit: number;
+  offset: number;
+}

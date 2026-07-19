@@ -11,7 +11,7 @@ export function CoursesPage() {
 
   useEffect(() => {
     listCourses()
-      .then(setCourses)
+      .then((page) => setCourses(page.items))
       .catch(() => setError("Something went wrong loading the courses."));
   }, []);
 
