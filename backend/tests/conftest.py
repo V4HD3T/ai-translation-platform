@@ -59,3 +59,36 @@ def client_fixture(session: Session):
     with TestClient(app) as client:
         yield client
     app.dependency_overrides.clear()
+
+
+SEED_QUIZ_ANSWER_KEY = {
+    "What is the English translation of 'hola'?": "hello",
+    "What is the English translation of 'adiós'?": "goodbye",
+    'Complete the greeting: "___, ¿Cómo estás?"': "hola",
+    "What word did you hear?": "hola",
+    "Put the words in order to form a greeting.": "hola como estas",
+}
+
+
+@pytest.fixture
+def take_seed_quiz(client):
+    """Plays the seeded lesson-1 quiz end to end the way the frontend does
+    (v0.0.9): fetch the quiz -- which records the served questions as a
+    QuizSession -- then submit answers for exactly that served set.
+    `wrong` answers that many of the served questions incorrectly (from
+    the front), so tests can produce controlled scores regardless of
+    which adaptive subset was served."""
+
+    def _take(headers, wrong: int = 0):
+        quiz = client.get("/lessons/1/quiz", headers=headers).json()
+        answers = {}
+        for index, question in enumerate(quiz["questions"]):
+            correct = SEED_QUIZ_ANSWER_KEY[question["question_text"]]
+            answers[str(question["id"])] = "definitely wrong" if index < wrong else correct
+        return client.post(
+            f"/quizzes/{quiz['id']}/submit",
+            json={"session_id": quiz["session_id"], "answers": answers},
+            headers=headers,
+        )
+
+    return _take

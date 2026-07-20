@@ -12,6 +12,10 @@ class User(SQLModel, table=True):
     native_language: str = "en"
     daily_review_goal: int = 10
     is_verified: bool = False
+    # Admin flag is never settable through the public API (UserCreate has no
+    # such field -- no mass assignment); promotion happens via
+    # scripts/make_admin.py against the database directly.
+    is_admin: bool = False
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
@@ -82,6 +86,27 @@ class QuizAttempt(SQLModel, table=True):
     score: float
     total_questions: int
     completed_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class QuizSession(SQLModel, table=True):
+    """Records exactly which questions were served to a logged-in user when
+    they fetched a quiz (v0.0.9). Submissions are graded against this
+    served set -- the fix for the v0.0.7-review finding that grading only
+    the submitted answers let a client cherry-pick one known answer for a
+    100% score and the perfect_quiz badge.
+
+    Sessions are deliberately reusable: "Try again" re-submits the same
+    served set, which is legitimate practice, not an exploit. Anonymous
+    quiz views create no session (anonymous users can't submit anyway),
+    and lesson pages probing for a quiz's existence create orphan sessions
+    -- harmless small rows; a cleanup job is noted for later alongside
+    expired-token cleanup."""
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    user_id: int = Field(foreign_key="user.id")
+    quiz_id: int = Field(foreign_key="quiz.id")
+    question_ids_json: str  # JSON-encoded list of served QuizQuestion ids
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class VocabularyProgress(SQLModel, table=True):

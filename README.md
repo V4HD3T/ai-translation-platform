@@ -99,16 +99,17 @@ and architecture notes.
 
 ## Status
 
-- ✅ Backend: auth (+ refresh tokens, email verification, password reset, rate limiting, daily goals), translation (+ confidence/alternatives/idiom warnings/language detection), courses/lessons (+ grammar/cultural notes), quizzes (4 types + adaptive difficulty), progress/streak, spaced repetition, personalized suggestions, achievement badges — 126 tests passing
+- ✅ Backend: auth (+ refresh tokens, email verification, password reset, rate limiting, daily goals), translation (+ confidence/alternatives/idiom warnings/language detection), courses/lessons (+ grammar/cultural notes), quizzes (4 types + adaptive difficulty), progress/streak, spaced repetition, personalized suggestions, achievement badges — 141 tests passing
 - ✅ Frontend: a working interface for every flow (React + TypeScript)
 - ✅ Speech: voice input (translation + pronunciation practice) and voice output (translations + vocabulary + listening quiz questions), both browser-based, no model download
 - ✅ Progress tracking: daily streak, daily review goal, per-course completion percentage, achievement badges (`/progress`)
 - ✅ Spaced repetition: SM-2-scheduled vocabulary review (`/review`)
 - ✅ Security: app-wide + per-endpoint rate limiting, refresh token rotation, security headers, CI dependency scanning, real OWASP Top 10 audit (`SECURITY.md`)
 - ✅ Test & CI infrastructure: pytest + coverage gate and frontend type-check/build on every push (`.github/workflows/ci.yml`), paginated list endpoints
+- ✅ Data layer & content ops: Alembic migrations (with a migration-drift test), served-set quiz grading via QuizSession, admin CRUD API for all course/quiz content (`scripts/make_admin.py` to promote)
 - ✅ AI/translation engine topic: complete except running the real NLLB model, which needs to happen on your own machine (this sandbox has no network access to huggingface.co)
 - ✅ Language learning/pedagogy topic: complete
 - ✅ Security topic: complete
-- ⏳ Up next: Alembic migrations + admin endpoints (v0.0.9), then Docker/Redis/deploy (v0.1.0)
+- ⏳ Up next: Docker + docker-compose, Redis translation cache, and first real deploy (v0.1.0)
 
 (Full roadmap: `ARCHITECTURE.md` §6 · Full version history: `CHANGELOG.md` · Security review: `SECURITY.md`)

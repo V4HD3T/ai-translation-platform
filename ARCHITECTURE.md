@@ -241,6 +241,7 @@ except running real NLLB, which needs your own machine)
 | — | ✅ Done (v0.0.6) | Quiz types, adaptive difficulty, achievement badges, daily goals, lesson notes |
 | — | ✅ Done (v0.0.7) | Refresh tokens, rate limiting, email flows, security headers, CI scanning, OWASP audit |
 | — | ✅ Done (v0.0.8) | CI test workflow + coverage gate, app-wide rate limiting, paginated list endpoints |
+| — | ✅ Done (v0.0.9) | Alembic migrations + drift test, QuizSession served-set grading, admin content API |
 | 1 | pending — your machine | Real NLLB model integration (confirmed empirically: no network access to huggingface.co in this environment) |
 | 5 | pending | End-to-end testing, usability evaluation, bug fixing |
 | 6 | pending | Project report, documentation, defense presentation |

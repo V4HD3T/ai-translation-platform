@@ -104,10 +104,18 @@ export function QuizPage() {
       return;
     }
 
+    if (quiz.session_id == null) {
+      // Shouldn't happen for a logged-in user (the quiz fetch above was
+      // authenticated), but guard anyway: the backend refuses submissions
+      // without their served-question session.
+      setError("Your quiz session is missing — please reload the page.");
+      return;
+    }
+
     setError(null);
     setIsSubmitting(true);
     try {
-      const res = await submitQuiz(quiz.id, answers);
+      const res = await submitQuiz(quiz.id, quiz.session_id, answers);
       setResult(res);
       setNewAchievements(res.new_achievements);
     } catch {

@@ -93,7 +93,7 @@ def test_stats_reviews_today_counts_todays_reviews(client):
     assert response.json()["reviews_today"] == 2
 
 
-def test_stats_after_translation_and_quiz(client):
+def test_stats_after_translation_and_quiz(client, take_seed_quiz):
     headers = _auth_headers(client)
 
     client.post(
@@ -101,7 +101,7 @@ def test_stats_after_translation_and_quiz(client):
         json={"text": "hello", "source_lang": "en", "target_lang": "es"},
         headers=headers,
     )
-    client.post("/quizzes/1/submit", json={"answers": {"1": "hello"}}, headers=headers)
+    take_seed_quiz(headers)  # full served set answered correctly -> 100%
 
     response = client.get("/users/me/stats", headers=headers)
     assert response.status_code == 200

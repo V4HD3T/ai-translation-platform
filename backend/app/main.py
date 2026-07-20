@@ -9,7 +9,7 @@ from app.config import settings
 from app.database import engine, init_db
 from app.middleware import GeneralRateLimitMiddleware, SecurityHeadersMiddleware
 from app.models import Course, Language, Lesson, Quiz, QuizQuestion, VocabularyItem
-from app.routers import achievements, auth, courses, quizzes, review, stats, suggestions, translate
+from app.routers import achievements, admin, auth, courses, quizzes, review, stats, suggestions, translate
 from app.services.security_logging import log_event
 
 
@@ -172,6 +172,7 @@ app.include_router(stats.router)
 app.include_router(review.router)
 app.include_router(suggestions.router)
 app.include_router(achievements.router)
+app.include_router(admin.router)
 
 
 @app.get("/health", tags=["system"])

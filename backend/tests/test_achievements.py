@@ -56,23 +56,17 @@ def test_ten_translations_awards_badge(client):
     assert "ten_translations" in codes
 
 
-def test_perfect_quiz_awards_badge(client):
+def test_perfect_quiz_awards_badge(client, take_seed_quiz):
     headers = _auth_headers(client)
-    response = client.post(
-        "/quizzes/1/submit", json={"answers": {"1": "hello"}}, headers=headers
-    )
+    response = take_seed_quiz(headers)  # every served question correct
     codes = {a["code"] for a in response.json()["new_achievements"]}
     assert "perfect_quiz" in codes
     assert "first_quiz" in codes
 
 
-def test_imperfect_quiz_does_not_award_perfect_badge(client):
+def test_imperfect_quiz_does_not_award_perfect_badge(client, take_seed_quiz):
     headers = _auth_headers(client)
-    response = client.post(
-        "/quizzes/1/submit",
-        json={"answers": {"1": "hello", "2": "wrong"}},
-        headers=headers,
-    )
+    response = take_seed_quiz(headers, wrong=1)  # one served question wrong
     codes = {a["code"] for a in response.json()["new_achievements"]}
     assert "perfect_quiz" not in codes
     assert "first_quiz" in codes  # still earned for completing a quiz at all

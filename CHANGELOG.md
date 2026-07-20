@@ -11,6 +11,65 @@ Turkish, then each given an English mirror at the same version number
 directly). New features starting from 0.0.4 are English-only going
 forward, one PATCH version per completed feature/topic.
 
+## [0.0.9] — Alembic migrations, quiz sessions & admin API
+
+The schema-discipline version. create_all served through v0.0.8, but it
+can only add missing tables — it cannot express "add a column", and this
+version needed exactly that twice. So migrations arrived first, and the
+two features that required schema changes rode in on them.
+
+### Added
+
+- **Alembic migrations** (`backend/alembic/`): two revisions — `0001`
+  captures the full pre-0.0.9 schema, `0002` adds `quizsession` and
+  `user.is_admin`. Startup (`init_db`) now runs `upgrade head`
+  programmatically instead of `create_all`; the CLI works too
+  (`alembic upgrade head` from `backend/`), with the URL resolved from
+  app settings in both paths (`alembic.ini` deliberately leaves
+  `sqlalchemy.url` empty — an inline value there would silently win).
+  Two hard-won footnotes are encoded in the files themselves:
+  autogenerate omits `server_default`, so the `is_admin` migration adds
+  it by hand (a NOT NULL column can't join a populated table without
+  one, verified against a database with existing rows); and
+  `render_as_batch=True` is on because SQLite can't ALTER TABLE
+  natively. A migration-drift test upgrades a scratch database to head
+  and asserts the result matches the SQLModel metadata exactly — a model
+  change that forgets its migration now fails the suite instead of the
+  deployment. **Existing pre-0.0.9 dev databases**: delete `app.db`, or
+  run `alembic stamp 0001` once and upgrade from there.
+- **Quiz sessions — the real fix for the scoring exploit** flagged in
+  the v0.0.7 review and deliberately deferred until migrations existed.
+  Fetching a quiz while logged in now records the exact served question
+  set as a `QuizSession`; submissions carry `session_id` and are graded
+  against that served set. This *reverses* the documented v0.0.6 choice
+  of grading only submitted answers: unanswered served questions count
+  as wrong, answers outside the served set are ignored, and submitting
+  one cherry-picked answer now scores 20%, not 100% — no more free
+  `perfect_quiz` badges. Sessions are reusable on purpose ("Try again"
+  is practice, not an exploit) and one rejection message covers
+  missing/foreign/mismatched sessions (no session-id probing).
+  **Breaking change** to `POST /quizzes/{id}/submit`; frontend updated
+  in lockstep.
+- **Admin content-management API** (`/admin/*`, 15 endpoints): full CRUD
+  for courses, lessons, vocabulary, quizzes, and questions — the
+  catalogue is no longer hardcoded seed data. Authorization is a plain
+  `is_admin` flag with no API path to it (promotion only via
+  `scripts/make_admin.py`, sidestepping the who-admins-the-first-admin
+  bootstrap problem; `UserCreate` has no such field, so no mass
+  assignment). Deletes cascade explicitly and destructively — course →
+  lessons → vocabulary (including learners' spaced-repetition progress)
+  → quizzes → questions/attempts/sessions — a documented product
+  decision, with soft-delete noted as the roadmap answer if learner
+  data must survive content edits. One quiz per lesson is enforced (the
+  public lesson→quiz lookup would otherwise be ambiguous).
+- 15 new tests (141 total, coverage 93%): migration drift, session
+  creation/authorization/reuse, the closed exploit, admin authz +
+  mass-assignment guard, the full content pipeline, and cascades.
+
+### Changed
+
+- Version bumped to 0.0.9 (backend config + frontend package).
+
 ## [0.0.8] — Test infrastructure & backend polish
 
 The "cheapest insurance first" version: before any more features land,

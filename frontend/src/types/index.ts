@@ -5,6 +5,7 @@ export interface User {
   native_language: string;
   daily_review_goal: number;
   is_verified: boolean;
+  is_admin: boolean;
 }
 
 export interface Language {
@@ -76,6 +77,9 @@ export interface Quiz {
   title: string;
   quiz_type: string;
   language_code: string;
+  // v0.0.9: server-side record of which questions were served; required
+  // for submitting. null only for anonymous fetches.
+  session_id: number | null;
   questions: QuizQuestion[];
 }
 

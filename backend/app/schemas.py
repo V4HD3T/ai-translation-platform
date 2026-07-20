@@ -18,6 +18,7 @@ class UserRead(BaseModel):
     native_language: str
     daily_review_goal: int
     is_verified: bool
+    is_admin: bool = False
 
 
 class Token(BaseModel):
@@ -134,10 +135,17 @@ class QuizRead(BaseModel):
     title: str
     quiz_type: str
     language_code: str
+    # v0.0.9: id of the QuizSession recording which questions were served
+    # (None for anonymous requesters, who can't submit anyway).
+    session_id: Optional[int] = None
     questions: List[QuizQuestionRead]
 
 
 class QuizSubmission(BaseModel):
+    # v0.0.9: the QuizSession id returned by the quiz GET -- grading happens
+    # against that session's served-question set, not against whatever
+    # subset the client chose to answer.
+    session_id: int
     answers: Dict[str, str]  # {question_id (str): given_answer}
 
 
@@ -218,3 +226,97 @@ class Page(BaseModel, Generic[T]):
     total: int
     limit: int
     offset: int
+
+
+# --- Admin content-management schemas (v0.0.9) ---
+
+
+class CourseCreate(BaseModel):
+    language_code: str
+    title: str
+    level: str
+    description: str = ""
+
+
+class CourseUpdate(BaseModel):
+    language_code: Optional[str] = None
+    title: Optional[str] = None
+    level: Optional[str] = None
+    description: Optional[str] = None
+
+
+class LessonCreate(BaseModel):
+    title: str
+    content: str = ""
+    order: int = 0
+    grammar_note: str = ""
+    cultural_note: str = ""
+
+
+class LessonUpdate(BaseModel):
+    title: Optional[str] = None
+    content: Optional[str] = None
+    order: Optional[int] = None
+    grammar_note: Optional[str] = None
+    cultural_note: Optional[str] = None
+
+
+class VocabularyCreate(BaseModel):
+    word: str
+    translation: str
+    example_sentence: str = ""
+
+
+class VocabularyUpdate(BaseModel):
+    word: Optional[str] = None
+    translation: Optional[str] = None
+    example_sentence: Optional[str] = None
+
+
+class QuizCreate(BaseModel):
+    title: str
+    quiz_type: str = "multiple_choice"
+
+
+class QuizUpdate(BaseModel):
+    title: Optional[str] = None
+    quiz_type: Optional[str] = None
+
+
+class AdminQuizRead(BaseModel):
+    id: int
+    lesson_id: int
+    title: str
+    quiz_type: str
+
+
+class QuizQuestionCreate(BaseModel):
+    question_type: str = "multiple_choice"
+    question_text: str
+    correct_answer: str
+    options: List[str] = []
+    audio_text: Optional[str] = None
+    difficulty: int = Field(default=1, ge=1, le=3)
+
+
+class QuizQuestionUpdate(BaseModel):
+    question_type: Optional[str] = None
+    question_text: Optional[str] = None
+    correct_answer: Optional[str] = None
+    options: Optional[List[str]] = None
+    audio_text: Optional[str] = None
+    difficulty: Optional[int] = Field(default=None, ge=1, le=3)
+
+
+class AdminQuizQuestionRead(BaseModel):
+    """Admin view of a question -- includes the correct answer and
+    difficulty, which the learner-facing QuizQuestionRead deliberately
+    omits."""
+
+    id: int
+    question_type: str
+    question_text: str
+    correct_answer: str
+    options: List[str]
+    audio_text: Optional[str] = None
+    difficulty: int
