@@ -61,6 +61,43 @@ learner with caps lock on gets scored correctly.
   verified to be a *meaningful* test (plain `.lower()` folds `MISIR` to
   `misir` and would fail it).
 
+### Fixed — CI pipeline
+
+Both frontend CI jobs had been red since v0.1.2 introduced them. Neither
+failure was in application code; both were in the test *plumbing*, and
+one of them had been invisible locally for a bad reason.
+
+- **Vitest was collecting the Playwright spec.** Vitest's default include
+  glob is repo-wide, so `e2e/learner-journey.spec.ts` matched, and
+  Playwright's `test()` threw "did not expect test() to be called here" —
+  failing the run even though all 16 unit tests passed. Fixed by scoping
+  `include` to `src/`; the two suites are different runners with
+  different globals. *Why it wasn't caught:* the local verification runs
+  piped vitest through `grep "Tests " | tail -1`, which printed
+  `Tests 16 passed` and swallowed the `Test Files 1 failed` line directly
+  above it — a filter that hid exactly the line that mattered, across
+  three versions.
+- **Playwright's webServer timed out in CI.** Both servers now bind
+  explicitly to `127.0.0.1` instead of relying on the default
+  `localhost`. On a host with IPv6 — every GitHub runner, but not the
+  dev sandbox this was verified in, which has none — `localhost` can
+  resolve to `::1` first, leaving the server on `[::1]:5173` while
+  Playwright polls `http://127.0.0.1:5173` until the timeout expires.
+  Timeouts also raised to 120s (a cold runner pays for Alembic
+  migrations and Vite's dependency pre-bundling), and `stdout`/`stderr`
+  are now piped. That last part matters for diagnosis: Playwright's
+  `stdout` default is `ignore` while uvicorn logs to stderr, so the
+  original job log showed backend startup and *nothing at all* from
+  Vite — which looked like evidence Vite never started, when it was
+  simply muted. The next run will show either its banner or its error.
+
+Honest status: the Vitest fix is verified locally (exit 0, 16 tests, e2e
+no longer collected) and the Playwright config is verified to still bring
+both servers up. The IPv6 diagnosis cannot be reproduced in an
+environment without IPv6, so it remains the leading hypothesis rather
+than a proven root cause — the piped output exists so the next CI run
+settles it either way.
+
 ### Fixed — post-release scan
 
 A full re-read of the codebase at v0.1.3, focused on the seams where the
