@@ -245,6 +245,7 @@ except running real NLLB, which needs your own machine)
 | — | ✅ Done (v0.1.0) | Docker + compose, Redis translation cache, CORS allowlist, deployment guide |
 | — | ✅ Done (v0.1.1) | Dark mode, toast system, clipboard, WCAG AA contrast audit + a11y fixes |
 | — | ✅ Done (v0.1.2) | Vitest frontend units, Playwright E2E in CI, Locust load tests, TESTING.md |
+| — | ✅ Done (v0.1.3) | PWA (manifest, service worker, opt-in updates), JSON content packs + importer |
 | 1 | pending — your machine | Real NLLB model integration (confirmed empirically: no network access to huggingface.co in this environment) |
 | 5 | pending | End-to-end testing, usability evaluation, bug fixing |
 | 6 | pending | Project report, documentation, defense presentation |

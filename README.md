@@ -1,6 +1,6 @@
 # Lingua — AI Translation and Language Learning Platform
 
-**Version:** 0.1.2
+**Version:** 0.1.3
 
 A platform offering real-time translation and interactive language
 learning for multilingual users. Built as part of a university graduation
@@ -32,6 +32,7 @@ lives in [CHANGELOG.md](./CHANGELOG.md).
 | 0.1.0 | Ops: Docker + docker-compose (one command), Redis translation cache, CORS locked to the configured origin, deployment guide + Railway/Vercel configs. |
 | 0.1.1 | UX: dark mode (token-level, no-flash), general toast system, copy-to-clipboard, accessibility audit — incl. fixing five measured WCAG failures the light theme had shipped with. |
 | 0.1.2 | Test depth: first frontend unit tests (Vitest, 16), Playwright E2E journey in CI, Locust load testing with measured limiter verification, `TESTING.md`. |
+| 0.1.3 | PWA (installable, offline shell, maskable icons, opt-in updates) and content as importable JSON packs — Turkish A1 + Spanish A2, tripling the catalogue. |
 
 ## Quick start
 
@@ -71,7 +72,7 @@ and architecture notes.
 
 ## Status
 
-- ✅ Backend: auth (+ refresh tokens, email verification, password reset, rate limiting, daily goals), translation (+ confidence/alternatives/idiom warnings/language detection), courses/lessons (+ grammar/cultural notes), quizzes (4 types + adaptive difficulty), progress/streak, spaced repetition, personalized suggestions, achievement badges — 148 backend + 16 frontend tests passing
+- ✅ Backend: auth (+ refresh tokens, email verification, password reset, rate limiting, daily goals), translation (+ confidence/alternatives/idiom warnings/language detection), courses/lessons (+ grammar/cultural notes), quizzes (4 types + adaptive difficulty), progress/streak, spaced repetition, personalized suggestions, achievement badges — 157 backend + 16 frontend tests passing
 - ✅ Frontend: a working interface for every flow (React + TypeScript)
 - ✅ Speech: voice input (translation + pronunciation practice) and voice output (translations + vocabulary + listening quiz questions), both browser-based, no model download
 - ✅ Progress tracking: daily streak, daily review goal, per-course completion percentage, achievement badges (`/progress`)
@@ -82,9 +83,10 @@ and architecture notes.
 - ✅ Ops & deploy: Docker + docker-compose (one command), Redis translation cache with graceful degradation, CORS locked to the configured frontend origin, deployment guide + Railway/Vercel configs (`DEPLOYMENT.md`)
 - ✅ UX & accessibility: dark mode with pre-paint theme resolution, app-wide toast notifications, copy-to-clipboard, WCAG AA-audited palette (30/30 pairs, both themes), landmarks + skip link + labeled controls
 - ✅ Test depth: four-layer strategy (`TESTING.md`) — backend pytest, frontend Vitest, Playwright E2E in CI, Locust load testing with measured rate-limiter verification
+- ✅ PWA & content: installable app with offline shell and opt-in updates; course content as validated JSON packs (`scripts/import_content.py`) — Turkish A1 and Spanish A2 alongside the seeded course
 - ✅ AI/translation engine topic: complete except running the real NLLB model, which needs to happen on your own machine (this sandbox has no network access to huggingface.co)
 - ✅ Language learning/pedagogy topic: complete
 - ✅ Security topic: complete
-- ⏳ Up next: PWA support and content expansion via the admin API (v0.1.3)
+- ⏳ Up next: academic deliverables (ER/use-case/sequence diagrams, user guide) and activating the real NLLB model
 
 (Full roadmap: `ARCHITECTURE.md` §6 · Full version history: `CHANGELOG.md` · Security review: `SECURITY.md`)

@@ -1,0 +1,160 @@
+{
+  "course": {
+    "language_code": "tr",
+    "title": "Turkish for Beginners",
+    "level": "A1",
+    "description": "Everyday Turkish: greetings, numbers, and food, with the vowel harmony and case rules that make the language click."
+  },
+  "lessons": [
+    {
+      "title": "Selamlaşma (Greetings)",
+      "order": 1,
+      "content": "Turkish greetings change with the time of day far more than English ones do. Note that 'günaydın' is strictly a morning word — using it at 3pm marks you instantly as a learner.",
+      "grammar_note": "Turkish is agglutinative: suffixes stack onto a root in a fixed order. 'Teşekkür ederim' is literally 'thanks I-do' — 'ederim' is 'etmek' (to do) + first-person present. You'll meet this compound-verb pattern constantly.",
+      "cultural_note": "'Hoşça kal' (stay well) is said by the person leaving; the one staying says 'güle güle' (go smiling). Using the wrong one is a small but very audible slip.",
+      "vocabulary": [
+        { "word": "merhaba", "translation": "hello", "example_sentence": "Merhaba, nasılsın?" },
+        { "word": "günaydın", "translation": "good morning", "example_sentence": "Günaydın! Kahvaltı hazır." },
+        { "word": "iyi geceler", "translation": "good night", "example_sentence": "İyi geceler, yarın görüşürüz." },
+        { "word": "teşekkür ederim", "translation": "thank you", "example_sentence": "Yardımın için teşekkür ederim." },
+        { "word": "hoşça kal", "translation": "goodbye", "example_sentence": "Hoşça kal, kendine iyi bak." }
+      ],
+      "quiz": {
+        "title": "Selamlaşma Quiz",
+        "questions": [
+          {
+            "question_type": "multiple_choice",
+            "question_text": "What is the English translation of 'merhaba'?",
+            "correct_answer": "hello",
+            "options": ["hello", "goodbye", "thank you", "good night"],
+            "difficulty": 1
+          },
+          {
+            "question_type": "multiple_choice",
+            "question_text": "When would you say 'günaydın'?",
+            "correct_answer": "in the morning",
+            "options": ["in the morning", "at night", "when leaving", "when thanking someone"],
+            "difficulty": 1
+          },
+          {
+            "question_type": "fill_blank",
+            "question_text": "Complete the phrase for 'thank you': ___ ederim",
+            "correct_answer": "teşekkür",
+            "options": [],
+            "difficulty": 2
+          },
+          {
+            "question_type": "listening",
+            "question_text": "What word did you hear?",
+            "correct_answer": "günaydın",
+            "options": [],
+            "audio_text": "günaydın",
+            "difficulty": 2
+          },
+          {
+            "question_type": "sentence_order",
+            "question_text": "Put the words in order to wish someone a good night.",
+            "correct_answer": "iyi geceler dilerim",
+            "options": ["geceler", "dilerim", "iyi"],
+            "difficulty": 3
+          }
+        ]
+      }
+    },
+    {
+      "title": "Sayılar (Numbers)",
+      "order": 2,
+      "content": "Turkish numbers are fully regular once you know 1–10: there are no irregular teens like English 'eleven' or 'twelve'. Eleven is simply 'on bir' (ten one).",
+      "grammar_note": "After a number, Turkish nouns stay singular: 'beş elma' (five apple), never 'beş elmalar'. The number already carries the plurality, so the -lar/-ler suffix would be redundant.",
+      "cultural_note": "Turkish counts on fingers starting from the thumb, and 'çeyrek' (a quarter) shows up constantly in tea culture and time-telling alike.",
+      "vocabulary": [
+        { "word": "bir", "translation": "one", "example_sentence": "Bir bardak çay lütfen." },
+        { "word": "iki", "translation": "two", "example_sentence": "İki kardeşim var." },
+        { "word": "üç", "translation": "three", "example_sentence": "Üç gün sonra geliyorum." },
+        { "word": "dört", "translation": "four", "example_sentence": "Masada dört sandalye var." },
+        { "word": "beş", "translation": "five", "example_sentence": "Saat beşte buluşalım." }
+      ],
+      "quiz": {
+        "title": "Sayılar Quiz",
+        "questions": [
+          {
+            "question_type": "multiple_choice",
+            "question_text": "What is the English translation of 'üç'?",
+            "correct_answer": "three",
+            "options": ["one", "two", "three", "four"],
+            "difficulty": 1
+          },
+          {
+            "question_type": "fill_blank",
+            "question_text": "Write the Turkish word for 'five'.",
+            "correct_answer": "beş",
+            "options": [],
+            "difficulty": 2
+          },
+          {
+            "question_type": "multiple_choice",
+            "question_text": "How do you say 'eleven' in Turkish?",
+            "correct_answer": "on bir",
+            "options": ["on bir", "bir on", "onbirinci", "iki on"],
+            "difficulty": 3
+          },
+          {
+            "question_type": "listening",
+            "question_text": "What number did you hear?",
+            "correct_answer": "dört",
+            "options": [],
+            "audio_text": "dört",
+            "difficulty": 2
+          }
+        ]
+      }
+    },
+    {
+      "title": "Yemek (Food)",
+      "order": 3,
+      "content": "Food vocabulary is where Turkish vowel harmony becomes unavoidable: suffixes shift their vowels to match the word they attach to.",
+      "grammar_note": "The accusative suffix harmonises four ways: ekmeği, suyu, elmayı, mısırı. The vowel you hear is dictated by the last vowel of the noun — this is vowel harmony doing its job.",
+      "cultural_note": "Offering food is close to obligatory in Turkish hospitality, and refusing outright can read as cold. 'Afiyet olsun' (may it be healthy) is said both before and after eating.",
+      "vocabulary": [
+        { "word": "ekmek", "translation": "bread", "example_sentence": "Fırından ekmek aldım." },
+        { "word": "su", "translation": "water", "example_sentence": "Bir şişe su alabilir miyim?" },
+        { "word": "elma", "translation": "apple", "example_sentence": "Her sabah bir elma yerim." },
+        { "word": "peynir", "translation": "cheese", "example_sentence": "Kahvaltıda beyaz peynir var." },
+        { "word": "mısır", "translation": "corn", "example_sentence": "Sahilde mısır satıyorlar." }
+      ],
+      "quiz": {
+        "title": "Yemek Quiz",
+        "questions": [
+          {
+            "question_type": "multiple_choice",
+            "question_text": "What is the English translation of 'ekmek'?",
+            "correct_answer": "bread",
+            "options": ["bread", "water", "cheese", "apple"],
+            "difficulty": 1
+          },
+          {
+            "question_type": "fill_blank",
+            "question_text": "Write the Turkish word for 'corn'.",
+            "correct_answer": "mısır",
+            "options": [],
+            "difficulty": 2
+          },
+          {
+            "question_type": "fill_blank",
+            "question_text": "Write the Turkish word for 'cheese'.",
+            "correct_answer": "peynir",
+            "options": [],
+            "difficulty": 2
+          },
+          {
+            "question_type": "sentence_order",
+            "question_text": "Put the words in order: 'I would like a bottle of water.'",
+            "correct_answer": "bir şişe su istiyorum",
+            "options": ["su", "bir", "istiyorum", "şişe"],
+            "difficulty": 3
+          }
+        ]
+      }
+    }
+  ]
+}

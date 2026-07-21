@@ -278,3 +278,23 @@ python scripts/make_admin.py <username> --revoke   # revoke
 
 Admin deletes cascade destructively (including learners' progress on the
 deleted content) — intentional; see the module docstring.
+
+## Content packs (v0.1.3)
+
+Course content lives as validated JSON in `backend/content/`, not in
+Python. `seed_data` remains the minimal demo/test fixture; real content
+is imported:
+
+```bash
+python scripts/import_content.py --list        # what's available
+python scripts/import_content.py               # import everything
+python scripts/import_content.py turkish-a1    # one pack
+```
+
+Packs are validated before anything is written (question types,
+multiple-choice answers present in their own options, `sentence_order`
+words reconstructing the expected sentence) and imports are idempotent by
+(language, title), so re-running after a deploy is safe.
+
+To add a pack, copy an existing file in `content/` and follow its shape —
+no code change needed.

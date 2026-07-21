@@ -11,6 +11,60 @@ Turkish, then each given an English mirror at the same version number
 directly). New features starting from 0.0.4 are English-only going
 forward, one PATCH version per completed feature/topic.
 
+## [0.1.3] — PWA support & content expansion
+
+Two roadmap items, and a quiet full circle: the Turkish course written
+this version is the first real content to exercise the İ/I case-folding
+bug fixed back in the v0.0.7 review — and it now has tests proving a
+learner with caps lock on gets scored correctly.
+
+### Added
+
+- **PWA support** (`vite-plugin-pwa`): web app manifest, generated icon
+  set (192/512 plus a dedicated **maskable** 512 with a 20% safe zone —
+  Android crops icons to its own shape and would otherwise clip the
+  glyph), Apple touch icon, favicon, and a Workbox service worker
+  precaching the app shell. Three deliberate choices:
+  `registerType: "prompt"` rather than autoUpdate, because silently
+  swapping the app mid-quiz would lose unsubmitted answers, so the
+  person decides when to reload (`UpdatePrompt` component, ARIA-live,
+  positioned opposite the toast corner so the two never collide);
+  **API responses are not cached** — history, streaks, and quiz sessions
+  are per-user and time-sensitive, and a stale-served session would break
+  the v0.0.9 served-set grading contract, while the Redis layer already
+  caches the one thing worth caching server-side where invalidation is
+  manageable; and service workers stay **off in dev**, because a stale SW
+  is a genuinely confusing debugging experience.
+- **Content as data, not code** (`backend/content/*.json` +
+  `app/services/content_import.py` + `scripts/import_content.py`):
+  continuing the v0.0.9 move away from a hardcoded catalogue, real
+  content now ships as validated JSON packs importable into any database
+  without a code change or deploy. `seed_data` is left exactly as it was
+  — it's the minimal demo/test fixture that 148 tests depend on.
+  Validation runs before any write, so a malformed pack fails loudly and
+  atomically: unknown question types, multiple-choice answers missing
+  from their own options, and `sentence_order` words that can't
+  reconstruct the expected sentence are all caught at load time rather
+  than in front of a learner. Imports are idempotent by
+  (language, title), so re-running after a deploy is a no-op.
+- **Two content packs**, roughly tripling the catalogue: *Turkish for
+  Beginners* (A1, 3 lessons — greetings, numbers, food; 15 vocabulary
+  items, 13 questions across all four question types) and *Spanish: Out
+  in the World* (A2, 2 lessons — restaurant and travel; 10 items, 8
+  questions). Both carry real grammar and cultural notes (agglutination,
+  vowel harmony, 'hoşça kal' vs 'güle güle', `quisiera` as the polite
+  workhorse).
+- 9 new tests (157 total, 93% coverage): pack validation, full
+  content-tree import, idempotency, public-API serving, and a
+  parametrized end-to-end check that `mısır`, `MISIR`, `Mısır`, and a
+  padded variant are all accepted while `misir` is correctly rejected —
+  verified to be a *meaningful* test (plain `.lower()` folds `MISIR` to
+  `misir` and would fail it).
+
+### Changed
+
+- Version bumped to 0.1.3.
+
 ## [0.1.2] — Test depth: frontend units, E2E, load
 
 The version where "tested" stops meaning "the backend is tested". Every

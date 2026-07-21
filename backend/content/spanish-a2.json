@@ -1,0 +1,106 @@
+{
+  "course": {
+    "language_code": "es",
+    "title": "Spanish: Out in the World",
+    "level": "A2",
+    "description": "Practical Spanish for restaurants and travel — the situations where A1 vocabulary runs out first."
+  },
+  "lessons": [
+    {
+      "title": "En el restaurante (At the restaurant)",
+      "order": 1,
+      "content": "Restaurant Spanish is highly scripted, which makes it an efficient place to gain fluency fast: the same dozen phrases cover almost every meal.",
+      "grammar_note": "'Quisiera' (I would like) is the polite workhorse here — it's the imperfect subjunctive of 'querer', softer than 'quiero' (I want) without needing any grammar you haven't met yet.",
+      "cultural_note": "In Spain the bill almost never arrives unrequested; lingering at the table is expected, and you ask for 'la cuenta' when you're genuinely done.",
+      "vocabulary": [
+        { "word": "la cuenta", "translation": "the bill", "example_sentence": "La cuenta, por favor." },
+        { "word": "el camarero", "translation": "the waiter", "example_sentence": "El camarero trae el menú." },
+        { "word": "la mesa", "translation": "the table", "example_sentence": "Una mesa para dos, por favor." },
+        { "word": "pedir", "translation": "to order", "example_sentence": "Voy a pedir el pescado." },
+        { "word": "la propina", "translation": "the tip", "example_sentence": "Dejamos la propina en la mesa." }
+      ],
+      "quiz": {
+        "title": "En el restaurante Quiz",
+        "questions": [
+          {
+            "question_type": "multiple_choice",
+            "question_text": "What is the English translation of 'la cuenta'?",
+            "correct_answer": "the bill",
+            "options": ["the bill", "the table", "the tip", "the waiter"],
+            "difficulty": 1
+          },
+          {
+            "question_type": "fill_blank",
+            "question_text": "Complete the polite request: ___, por favor (the bill)",
+            "correct_answer": "la cuenta",
+            "options": [],
+            "difficulty": 2
+          },
+          {
+            "question_type": "listening",
+            "question_text": "What word did you hear?",
+            "correct_answer": "propina",
+            "options": [],
+            "audio_text": "propina",
+            "difficulty": 2
+          },
+          {
+            "question_type": "sentence_order",
+            "question_text": "Put the words in order to ask for a table for two.",
+            "correct_answer": "una mesa para dos",
+            "options": ["para", "una", "dos", "mesa"],
+            "difficulty": 3
+          }
+        ]
+      }
+    },
+    {
+      "title": "Los viajes (Travel)",
+      "order": 2,
+      "content": "Travel vocabulary is where prepositions start to matter: 'el tren a Madrid' versus 'el tren de Madrid' are opposite journeys.",
+      "grammar_note": "'Ir a' + infinitive is the near future: 'voy a viajar' (I'm going to travel). It's the shortcut that lets you talk about the future long before you learn the true future tense.",
+      "cultural_note": "Spanish long-distance trains are punctual to the point of pride, and platform numbers ('el andén') often appear only minutes before departure.",
+      "vocabulary": [
+        { "word": "el avión", "translation": "the plane", "example_sentence": "El avión sale a las ocho." },
+        { "word": "la estación", "translation": "the station", "example_sentence": "La estación está cerca del hotel." },
+        { "word": "el billete", "translation": "the ticket", "example_sentence": "Compré un billete de ida y vuelta." },
+        { "word": "el equipaje", "translation": "the luggage", "example_sentence": "Mi equipaje es muy pesado." },
+        { "word": "la llegada", "translation": "the arrival", "example_sentence": "La llegada es a las diez." }
+      ],
+      "quiz": {
+        "title": "Los viajes Quiz",
+        "questions": [
+          {
+            "question_type": "multiple_choice",
+            "question_text": "What is the English translation of 'el billete'?",
+            "correct_answer": "the ticket",
+            "options": ["the ticket", "the luggage", "the arrival", "the station"],
+            "difficulty": 1
+          },
+          {
+            "question_type": "fill_blank",
+            "question_text": "Write the Spanish word for 'the station'.",
+            "correct_answer": "la estación",
+            "options": [],
+            "difficulty": 2
+          },
+          {
+            "question_type": "multiple_choice",
+            "question_text": "Which phrase means 'I'm going to travel'?",
+            "correct_answer": "voy a viajar",
+            "options": ["voy a viajar", "viajo ayer", "fui viajar", "voy viajando"],
+            "difficulty": 3
+          },
+          {
+            "question_type": "listening",
+            "question_text": "What word did you hear?",
+            "correct_answer": "equipaje",
+            "options": [],
+            "audio_text": "equipaje",
+            "difficulty": 2
+          }
+        ]
+      }
+    }
+  ]
+}

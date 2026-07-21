@@ -48,6 +48,18 @@ SQLite; the first Postgres deploy deserves a manual smoke test.*
 - Then set the backend's `FRONTEND_BASE_URL` to the Vercel URL (the two
   variables point at each other).
 
+## Loading course content
+
+The deployed database starts with only the seeded demo course. Load the
+shipped content packs (Turkish A1, Spanish A2) once per environment:
+
+```bash
+python scripts/import_content.py          # inside the backend container/service
+```
+
+Idempotent, so re-running after a redeploy is safe. See
+`backend/README.md` for the pack format.
+
 ## Secrets management rules
 
 - `.env` files never enter git (`.gitignore` already covers them);
@@ -67,6 +79,9 @@ SQLite; the first Postgres deploy deserves a manual smoke test.*
    and `VITE_API_URL` are consistent).
 4. `docker compose logs backend` / platform logs show **no**
    `insecure_default_secret_key` warning.
-5. Rate limiting sees real client IPs: hit an auth endpoint 6x and check
+5. The app is installable: open the deployed frontend on a phone and
+   check the browser offers "Add to home screen" (PWA manifest + service
+   worker are served over HTTPS).
+6. Rate limiting sees real client IPs: hit an auth endpoint 6x and check
    the 429 logs a real address, not the proxy's (the Dockerfile's
    `--proxy-headers` handles this on Railway/Render/Fly).

@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import { ToastProvider } from "./context/ToastContext";
+import { UpdatePrompt } from "./components/UpdatePrompt";
 import { NavBar } from "./components/NavBar";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { TranslatePage } from "./pages/TranslatePage";
@@ -29,6 +30,7 @@ export function App() {
             <a href="#main" className="skipLink">
               Skip to main content
             </a>
+            <UpdatePrompt />
             <NavBar />
             <main id="main">
               <Routes>
