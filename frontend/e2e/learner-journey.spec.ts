@@ -24,8 +24,24 @@ test("full learner journey: login → translate → quiz (100%) → history → 
   await page.getByLabel(/password/i).fill(password);
   await page.getByRole("button", { name: /log in/i }).click();
 
+  // Wait for the app to actually BE logged in before going anywhere.
+  // LoginPage stores the tokens and only then navigates; clicking and
+  // immediately calling page.goto() tore the page context down while the
+  // login request was still in flight -- the server logged a successful
+  // login while the client never persisted the tokens, so every later
+  // step silently ran anonymously. The visible "Log out" control is the
+  // honest signal that both the tokens and the auth state are in place.
+  const loggedIn = page.getByRole("button", { name: /log out/i });
+  await expect(loggedIn).toBeVisible();
+
   // --- translate; the saved-notice doubles as proof the session works ---
+  // The full reload is deliberate: it proves the session survives one,
+  // i.e. that tokens really are persisted rather than held in memory.
+  // Auth re-bootstraps asynchronously afterwards, so wait for it again --
+  // the notice below is driven by auth *state*, not just a stored token.
   await page.goto("/");
+  await expect(loggedIn).toBeVisible();
+
   await page.getByLabel("Text to translate").fill("hello world");
   const output = page.getByRole("status").filter({ hasText: "[en->es] hello world" });
   await expect(output).toBeVisible({ timeout: 10_000 });
@@ -44,12 +60,19 @@ test("full learner journey: login → translate → quiz (100%) → history → 
   }
   await page.getByRole("button", { name: /submit answers/i }).click();
 
-  await expect(page.getByText("100%")).toBeVisible();
+  // exact: true because a perfect score also awards the "perfect_quiz"
+  // badge, whose description reads "Scored 100% on a quiz." -- a
+  // substring match hits both and trips strict mode. Asserting the badge
+  // too, since earning it is part of what a perfect run should do.
+  await expect(page.getByText("100%", { exact: true })).toBeVisible();
   await expect(page.getByText("5 out of 5")).toBeVisible();
+  await expect(page.getByText("Scored 100% on a quiz.")).toBeVisible();
 
   // --- history shows the translation ---
   await page.goto("/history");
-  await expect(page.getByText("hello world")).toBeVisible();
+  // exact: true again -- the source text is a substring of the
+  // translation right next to it ("[en->es] hello world").
+  await expect(page.getByText("hello world", { exact: true })).toBeVisible();
   await expect(page.getByText("[en->es] hello world")).toBeVisible();
 
   // --- dark mode toggles the document theme ---

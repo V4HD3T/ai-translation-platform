@@ -70,10 +70,11 @@ Design choices worth knowing:
 - Selectors ride the v0.1.1 accessibility work (labels, roles, fieldset
   legends as group names) — the a11y round paying for itself as
   testability.
-- **Environment honesty:** Playwright's browser download is blocked in
-  the local development sandbox (network egress allowlist), so this
-  suite is authored locally but *executed in CI*, where the `e2e` job
-  installs Chromium and uploads traces on failure.
+- **Running it where the browser download is blocked:** point the suite
+  at a Chromium already on disk with
+  `E2E_CHROMIUM_PATH=/path/to/chrome npm run test:e2e`. CI leaves the
+  variable unset and uses the browser Playwright manages, installing it
+  in the `e2e` job and uploading traces on failure.
 
 ## Load (Locust)
 
@@ -109,6 +110,9 @@ seconds of every run.
 ## Known gaps (kept honest)
 
 - Register-form E2E flow (user seeded via API instead).
+- One journey spec only: it covers the critical path end to end, but
+  error paths (bad credentials, expired session, failed submission) are
+  still covered only at the unit and integration layers.
 - No visual-regression or screen-reader/axe automation yet (the v0.1.1
   contrast audit was static computation).
 - Postgres path documented but untested; load numbers predate real model

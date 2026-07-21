@@ -61,6 +61,37 @@ learner with caps lock on gets scored correctly.
   verified to be a *meaningful* test (plain `.lower()` folds `MISIR` to
   `misir` and would fail it).
 
+### Fixed — E2E suite (first verified green run)
+
+The webServer fix landed and the E2E test finally *ran* in CI — and
+promptly failed on three real defects in the spec itself. All three were
+found by running the suite locally against a Chromium already cached on
+disk, which is the first time this suite has been executed rather than
+merely authored.
+
+- **The login step raced the page navigation.** The spec clicked "Log
+  in" and immediately called `page.goto("/")`, tearing down the page
+  context while the login request was still in flight: the server logged
+  a successful login while the client never persisted the tokens, so
+  every later step ran anonymously and the "Saved to your translation
+  history" notice never appeared (it is driven by auth *state*, not just
+  a stored token). The spec now waits for the visible "Log out" control
+  before continuing — and again after the deliberate reload, which
+  doubles as proof that the session survives one.
+- **Two strict-mode violations from substring matching.** `getByText("100%")`
+  matched both the score and the freshly-awarded badge's description
+  ("Scored 100% on a quiz."), and on the history page `getByText("hello
+  world")` matched both the source text and the translation containing
+  it. Both are now `{ exact: true }` — and since a perfect run really
+  should award the badge, that assertion was added rather than dodged.
+- **`E2E_CHROMIUM_PATH`** escape hatch in `playwright.config.ts`: point
+  the suite at an existing browser where `npx playwright install` is
+  blocked by network policy. Unset in CI, which keeps using the version
+  Playwright manages.
+
+Verified: three consecutive local runs pass (~5s each), unit tests and
+the production build stay green.
+
 ### Fixed — CI pipeline
 
 Both frontend CI jobs had been red since v0.1.2 introduced them. Neither

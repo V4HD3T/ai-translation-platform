@@ -13,6 +13,14 @@ export default defineConfig({
   use: {
     baseURL: "http://127.0.0.1:5173",
     trace: "on-first-retry",
+    // Escape hatch for environments where `npx playwright install` is
+    // blocked (restricted network egress) but a compatible Chromium is
+    // already on disk:
+    //   E2E_CHROMIUM_PATH=/path/to/chrome npm run test:e2e
+    // Unset everywhere else, so CI uses the version Playwright manages.
+    launchOptions: process.env.E2E_CHROMIUM_PATH
+      ? { executablePath: process.env.E2E_CHROMIUM_PATH }
+      : undefined,
   },
   // Both servers bind explicitly to 127.0.0.1 rather than relying on the
   // default "localhost". That is not cosmetic: on a host with IPv6 (every
